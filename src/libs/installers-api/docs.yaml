@@ -1,0 +1,60 @@
+schemas:
+  Installer:
+    required:
+    - id
+    - UserId
+    - CountryId
+    - full_name
+    - age
+    - country
+    - job_status
+    - hourly_rate
+    - status
+    type: object
+    properties:
+      id:
+        type: integer
+        example: '1'
+      UserId:
+        type: integer
+        example: 1
+      CountryId:
+        type: integer
+        example: 1
+      full_name:
+        type: string
+        example: Amaxon
+      age:
+        type: integer
+        example: 23
+      job_status:
+        type: string
+        example: EMPLOYED
+      hourly_rate:
+        type: integer
+        example: 10
+      status:
+        type: string 
+paths:
+  "/installers":
+    get:
+      tags:
+        - Installers
+      summary: Get all installers
+      responses:
+        '200':
+          description: Returns a list of installers
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - "$ref": "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data: 
+                        type: object
+                        properties:
+                          installers:
+                            type: array
+                            items:
+                              "$ref": "#/components/schemas/Installer"

@@ -3,11 +3,7 @@ schemas:
     required:
     - id
     - full_name
-    - birthday
-    - gender
-    - vkb_id
-    - isAdmin
-    - isAdvertiser
+    - email
     type: object
     properties:
       id:
@@ -16,20 +12,9 @@ schemas:
       full_name:
         type: string
         example: John Doe
-      birthday:
+      email:
         type: string
-        format: date-time
-        example: '2016-08-29T09:12:33.001Z'
-      gender:
-        type: string
-        enum:
-        - male
-        - female
-      isAdmin:
-        type: boolean
-      isAdvertiser:
-        type: boolean
-
+        example: name@domain.com
 paths:
   "/users":
     get:
@@ -66,14 +51,11 @@ paths:
             schema:
               type: object
               required:
-              - first_name
-              - last_name
+              - full_name
               - email
               - password
               properties:
-                first_name:
-                  type: string
-                last_name:
+                full_name:
                   type: string
                 email:
                   type: string
@@ -112,14 +94,11 @@ paths:
             schema:
               type: object
               required:
-              - first_name
-              - last_name
+              - full_name
               - email
               - password
               properties:
-                first_name:
-                  type: string
-                last_name:
+                full_name:
                   type: string
                 email:
                   type: string
@@ -183,14 +162,11 @@ paths:
             schema:
               type: object
               required:
-              - first_name
-              - last_name
+              - full_name
               - email
               - password
               properties:
-                first_name:
-                  type: string
-                last_name:
+                full_name:
                   type: string
                 email:
                   type: string

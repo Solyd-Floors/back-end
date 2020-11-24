@@ -16,19 +16,19 @@ module.exports = {
         return true;
     },
     createUser: async ({
-        email, first_name, last_name, password
+        email, full_name, password
     }) => {
         let user = await User.create({
-            first_name, last_name, email, 
+            full_name, email, 
             password: await bcrypt.hash(password, SALT_ROUNDS), points: 0, 
         })
         return user;
     },
     createUserUnrestricted: async ({
-        first_name, last_name,
+        full_name,
         email, password
     }) => {
-        let args = { first_name, last_name, email }
+        let args = { full_name, email }
         if (password) args.password = await bcrypt.hash(password, SALT_ROUNDS)
         let user = await User.create(args)
         return user; 

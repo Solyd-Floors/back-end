@@ -23,14 +23,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false,
         },
-        first_name: {
+        full_name: {
             type: DataTypes.STRING,
             allowNull: false
-        },
-        last_name: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
+        }
     }, options);
     User.findByPkOrError = async pk => {
         let user = await User.findByPk(pk)
@@ -38,6 +34,7 @@ module.exports = (sequelize, DataTypes) => {
         return user;
     }
     User.associate = models => {
+        User.hasOne(models.Installer)
     }
     
     return User;

@@ -12,11 +12,23 @@
       },
       "version": "1.0.0"
     },
-    "servers": [],
+    "servers": [
+      {
+        "description" : "Works only in self-hosted",
+        "url" : "http://localhost:4000/api/v1"
+      }
+    ],
     "tags": [],
     "paths": {},
     "components": {
-      "securitySchemes": {},
+      "securitySchemes": {
+        "jwt_auth" : {
+          "description" : "Example value: \"Bearer <jwt_token>\"",
+          "type" : "apiKey",
+          "name" : "Authorization",
+          "in" : "header"
+        }
+      },
       "schemas": {
         "ApiResponse": {
           "type": "object",

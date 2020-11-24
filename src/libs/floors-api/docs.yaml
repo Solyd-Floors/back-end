@@ -1,0 +1,60 @@
+schemas:
+  Floor:
+    required:
+    - id
+    - UserId
+    - FloorTypeId
+    - FloorCategoryId
+    - BrandId
+    - profile_picture_url
+    - price
+    - quantity
+    type: object
+    properties:
+      id:
+        type: integer
+        example: '1'
+      UserId:
+        type: integer
+        example: 1
+      FloorTypeId:
+        type: integer
+        example: 1
+      FloorCategoryId:
+        type: integer
+        example: 1
+      BrandId:
+        type: integer
+        example: 1
+      profile_picture_url:
+        type: string
+        example: "https:/www.domain.com/filename.png"
+      price:
+        type: integer
+        example: 10
+      quantity:
+        type: integer
+        example: 10
+paths:
+  "/floors":
+    get:
+      tags:
+        - Floors
+      summary: Get all floors
+      responses:
+        '200':
+          description: Returns a list of floors
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - "$ref": "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data: 
+                        type: object
+                        properties:
+                          floors:
+                            type: array
+                            items:
+                              "$ref": "#/components/schemas/Floor"

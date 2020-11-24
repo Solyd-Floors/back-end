@@ -1,0 +1,36 @@
+schemas:
+  FloorCategory:
+    required:
+      - id
+      - name
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      name:
+        type: string
+        example: "Kitchen"
+paths:
+  "/floor_categories":
+    get:
+      tags:
+        - FloorCategories
+      summary: Get all floor categories
+      responses:
+        '200':
+          description: Returns a list of floor categories
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - "$ref": "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data: 
+                        type: object
+                        properties:
+                          floor_categories:
+                            type: array
+                            items:
+                              "$ref": "#/components/schemas/FloorCategory"

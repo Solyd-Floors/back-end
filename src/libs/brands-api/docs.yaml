@@ -1,0 +1,36 @@
+schemas:
+  Brand:
+    required:
+    - id
+    - name
+    type: object
+    properties:
+      id:
+        type: integer
+        example: '1'
+      name:
+        type: string
+        example: Amaxon
+paths:
+  "/brands":
+    get:
+      tags:
+        - Brands
+      summary: Get all brands
+      responses:
+        '200':
+          description: Returns a list of brands
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - "$ref": "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data: 
+                        type: object
+                        properties:
+                          brands:
+                            type: array
+                            items:
+                              "$ref": "#/components/schemas/Brand"
