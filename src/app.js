@@ -15,8 +15,7 @@ const DocsCollector = require("docs-collector")
 
 const docs_collector = new DocsCollector(
     __dirname + "/libs/api-docs/swagger-input.json",
-    __dirname + "/libs/api-docs/swagger.json",
-    __dirname + "/libs/api-docs/swagger.yaml"
+    __dirname + "/libs/api-docs/swagger.json"
 )
 
 global.docs_collector = docs_collector;
