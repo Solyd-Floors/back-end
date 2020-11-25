@@ -58,3 +58,51 @@ paths:
                             type: array
                             items:
                               "$ref": "#/components/schemas/Installer"
+    post:
+      tags:
+      - Installers
+      summary: Create installer
+      description: Creates an installer for logged in user
+      security:
+        - jwt_auth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - CountryId
+              - age
+              - hourly_rate
+              - job_status
+              properties:
+                CountryId:
+                  type: integer
+                  example: 1
+                age:
+                  type: integer
+                  example: 1
+                hourly_rate:
+                  type: integer
+                  example: 1
+                job_status:
+                  type: string
+                  enum:
+                    - EMPLOYED
+                    - UNEMPLOYED
+                  example: EMPLOYED
+      responses:
+        '201':
+          description: "Successful operation, installer created for logged in user"
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - "$ref": "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          installer:
+                            "$ref": "#/components/schemas/Installer"

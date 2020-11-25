@@ -4,7 +4,7 @@ require('express-async-errors');
 
 const models = require("./models")
 
-models.sequelize.sync({ force: true });
+models.sequelize.sync({ force: false });
 
 const http = require('http');
 const express = require('express')
@@ -30,6 +30,7 @@ const floor_types_api = require("./libs/floor-types-api")
 const brands_api = require("./libs/brands-api")
 const installers_api = require("./libs/installers-api")
 const floors_api = require("./libs/floors-api")
+const countries_api = require("./libs/countries-api")
 
 const app = express();
 const server = http.createServer(app)
@@ -52,6 +53,7 @@ app.use(PATHNAME_PREFIX, floor_types_api);
 app.use(PATHNAME_PREFIX, brands_api);
 app.use(PATHNAME_PREFIX, installers_api);
 app.use(PATHNAME_PREFIX, floors_api);
+app.use(PATHNAME_PREFIX, countries_api);
 
 app.get('/', (req, res) => res.json({ versions: [ "v1"] }))
 app.get("*", (req,res) => res.status(404).json({

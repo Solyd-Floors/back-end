@@ -5,9 +5,11 @@ const app = module.exports = express();
 
 const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
 
-const {  } = require("./validations");
-const { findAll } = require("./installers-dal");
+const { post_installers } = require("./validations");
+const { findAll, createInstaller } = require("./installers-dal");
 const { ErrorHandler } = require("../../utils/error");
+
+const { doesUserHaveInstaller } = require("../users-dal");
 
 app.use(allowCrossDomain)
 
@@ -17,5 +19,23 @@ app.get("/installers", async (req,res) => {
         code: 200,
         message: "success",
         data: { installers }
+    })
+})
+
+app.post("/installers", [ 
+    validateRequest(post_installers),
+    jwtRequired, passUserFromJWT,
+], async (req,res) => {
+    if (await doesUserHaveInstaller(req.user.id)) {
+        throw new ErrorHandler(403, "Already exists", [ "Logged in user is already a installer"])
+    }
+    let installer = await createInstaller({
+        ...req.body,
+        UserId: req.user.id
+    })
+    return res.json({
+        code: 201,
+        message: "success",
+        data: { installer }
     })
 })
