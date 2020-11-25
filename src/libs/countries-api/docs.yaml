@@ -1,0 +1,69 @@
+schemas:
+  Country:
+    required:
+    - id
+    - name
+    type: object
+    properties:
+      id:
+        type: integer
+        example: '1'
+      name:
+        type: string
+        example: Kosovo
+paths:
+  "/countries":
+    get:
+      tags:
+        - Countries
+      summary: Get all countries
+      responses:
+        '200':
+          description: Returns a list of countries
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - "$ref": "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data: 
+                        type: object
+                        properties:
+                          countries:
+                            type: array
+                            items:
+                              "$ref": "#/components/schemas/Country"
+    post:
+      tags:
+      - Countries
+      summary: Create country
+      description: Creates an country for logged in user
+      security:
+        - jwt_auth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+                  example: Kosovo
+      responses:
+        '201':
+          description: "Successful operation, country created for logged in user"
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - "$ref": "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          country:
+                            "$ref": "#/components/schemas/Country"
