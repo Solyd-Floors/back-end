@@ -15,7 +15,8 @@ const DocsCollector = require("docs-collector")
 
 const docs_collector = new DocsCollector(
     __dirname + "/libs/api-docs/swagger-input.json",
-    __dirname + "/libs/api-docs/swagger.json"
+    __dirname + "/libs/api-docs/swagger.json",
+    __dirname + "/libs/api-docs/swagger.yaml"
 )
 
 global.docs_collector = docs_collector;
@@ -24,13 +25,15 @@ const { errorHandler, allowCrossDomain } = require("./middlewares")
 
 const users_api = require("./libs/users-api")
 const auth_api = require("./libs/auth-api")
-const api_docs = require("./libs/api-docs")
 const floor_categories_api = require("./libs/floor-categories-api")
 const floor_types_api = require("./libs/floor-types-api")
 const brands_api = require("./libs/brands-api")
 const installers_api = require("./libs/installers-api")
 const floors_api = require("./libs/floors-api")
 const countries_api = require("./libs/countries-api")
+
+docs_collector.generateSwaggerDocument()
+const api_docs = require("./libs/api-docs")
 
 const app = express();
 const server = http.createServer(app)
@@ -44,7 +47,6 @@ app.use(allowCrossDomain)
 
 const PATHNAME_PREFIX = "/api/v1";
 
-docs_collector.generateSwaggerDocument()
 app.use(PATHNAME_PREFIX, api_docs)
 app.use(PATHNAME_PREFIX, auth_api)
 app.use(PATHNAME_PREFIX, users_api)

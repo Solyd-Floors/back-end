@@ -57,10 +57,13 @@ paths:
               properties:
                 full_name:
                   type: string
+                  example: Gjergj Kadriu
                 email:
                   type: string
+                  example: string@domain.com
                 password:
                   type: string
+                  example: string.123
       responses:
         '201':
           description: Successful operation, created user, token received
@@ -81,46 +84,46 @@ paths:
                           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImldhdCI6MTU5OTQ4MTQ2OH0.U9eHm-8zuCaGa776rUViOa33l22lSSRNctkfgstIz5k
         '403':
           description: Validation error
-  "/users/unrestricted":
-    post:
-      tags:
-      - Users
-      summary: Create user with full access
-      security:
-      - jwt_auth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-              - full_name
-              - email
-              - password
-              properties:
-                full_name:
-                  type: string
-                email:
-                  type: string
-                password:
-                  type: string
-      responses:
-        '201':
-          description: Successful operation, created user, token received
-          content:
-            application/json:
-              schema:
-                allOf:
-                - "$ref": "#/components/schemas/ApiResponse"
-                - type: object
-                  properties:
-                    data:
-                      type: object
-                      properties:
-                        user:
-                          "$ref": "#/components/schemas/User"
-        '403':
-          description: Validation error
+  # "/users/unrestricted":
+  #   post:
+  #     tags:
+  #     - Users
+  #     summary: Create user with full access
+  #     security:
+  #     - jwt_auth: []
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             required:
+  #             - full_name
+  #             - email
+  #             - password
+  #             properties:
+  #               full_name:
+  #                 type: string
+  #               email:
+  #                 type: string
+  #               password:
+  #                 type: string
+  #     responses:
+  #       '201':
+  #         description: Successful operation, created user, token received
+  #         content:
+  #           application/json:
+  #             schema:
+  #               allOf:
+  #               - "$ref": "#/components/schemas/ApiResponse"
+  #               - type: object
+  #                 properties:
+  #                   data:
+  #                     type: object
+  #                     properties:
+  #                       user:
+  #                         "$ref": "#/components/schemas/User"
+  #       '403':
+  #         description: Validation error
 
   "/users/{user_id}":
     get:

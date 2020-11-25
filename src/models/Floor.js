@@ -17,10 +17,10 @@ module.exports = (sequelize, DataTypes) => {
     }, options);
 
     Floor.associate = models => {
-        Floor.hasOne(models.FloorCategory)
-        Floor.hasOne(models.FloorType)
-        Floor.hasOne(models.Brand)
-        Floor.hasOne(models.User)
+        Floor.belongsTo(models.FloorCategory)
+        Floor.belongsTo(models.FloorType)
+        Floor.belongsTo(models.Brand)
+        Floor.belongsTo(models.User)
     }
     
     return Floor;

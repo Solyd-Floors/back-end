@@ -4,6 +4,41 @@ paths:
       tags:
       - Auth
       summary: Get token with credentials
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: string@domain.com
+                password:
+                  type: string
+                  example: string.123
+      responses:
+        '200':
+          description: Success, token received
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/ApiResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        user:
+                          type: array
+                          items:
+                            "$ref": "#/components/schemas/User"
+                        token:
+                          type: string
+                          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImldhdCI6MTU5OTQ4MTQ2OH0.U9eHm-8zuCaGa776rUViOa33l22lSSRNctkfgstIz5k
     get:
       tags:
       - Auth

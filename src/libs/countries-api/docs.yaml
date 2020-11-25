@@ -38,7 +38,7 @@ paths:
       tags:
       - Countries
       summary: Create country
-      description: Creates an country for logged in user
+      description: Creates an country
       security:
         - jwt_auth: []
       requestBody:
@@ -54,7 +54,7 @@ paths:
                   example: Kosovo
       responses:
         '201':
-          description: "Successful operation, country created for logged in user"
+          description: "Successful operation, country created"
           content:
             application/json:
               schema:
