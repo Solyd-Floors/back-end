@@ -27,8 +27,8 @@ module.exports = (sequelize, DataTypes) => {
     }, options);
 
     Installer.associate = models => {
-        Installer.belongsTo(models.User);
         Installer.belongsTo(models.Country);
+        Installer.belongsTo(models.User);
     }
     
     return Installer;
