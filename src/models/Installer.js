@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         profile_picture_url: {
-            type: DataTypes.STRING
+            type: DataTypes.TEXT
         }
     }, options);
 

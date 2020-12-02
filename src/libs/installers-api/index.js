@@ -30,7 +30,7 @@ app.post("/installers", [
         throw new ErrorHandler(403, "Already exists", [ "Logged in user is already a installer"])
     }
     let installer = await createInstaller({
-        ...req.body,
+        ...req.body, profile_picture_url: req.body.profile_picture, // TODO: convert src to file
         UserId: req.user.id
     })
     return res.json({

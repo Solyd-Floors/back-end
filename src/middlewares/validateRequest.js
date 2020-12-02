@@ -1,5 +1,11 @@
 const { ErrorHandler } = require("../utils/error")
 
+const getAcceptableBodyOutput = body => {
+    let new_body = JSON.parse(JSON.stringify(body));
+    if (new_body.profile_picture_url) new_body.profile_picture_url = "big string here (DEV)"
+    return new_body
+}
+
 module.exports = (yupSchema,strict = true,options) => {
     return async (req,res,next) => {
         if (options){
@@ -14,12 +20,14 @@ module.exports = (yupSchema,strict = true,options) => {
                 else throw new ErrorHandler(401, "Unauthorized")
             }
         }
-        if (process.env.DEBUG)
+        if (process.env.DEBUG){
+            let acceptable_output = getAcceptableBodyOutput(req.body.body ? req.body.body : req.body)
             console.log({
-                requestBody: req.body.body ? req.body.body : req.body,
+                requestBody: acceptable_output,
                 query: req.query,
                 params: req.params
             })
+        }
        try {
            await yupSchema.validate({
                 requestBody: req.body.body ? req.body.body : req.body,
