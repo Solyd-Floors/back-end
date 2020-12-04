@@ -5,7 +5,7 @@ const { ErrorHandler } = require("../utils/error");
 module.exports = (sequelize, DataTypes) => {
     let options = { }
     let Floor = sequelize.define('Floor', {
-        profile_picture_url: {
+        thumbnail_url: {
             type: DataTypes.STRING,
         },
         price: {

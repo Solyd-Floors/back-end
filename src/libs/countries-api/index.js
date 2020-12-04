@@ -6,7 +6,7 @@ const app = module.exports = express();
 const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
 
 const { post_countries } = require("./validations");
-const { findAll, createCountry } = require("./countries-dal");
+const { findAll, createCountry, updateCountry, deleteCountry } = require("./countries-dal");
 const { ErrorHandler } = require("../../utils/error");
 
 app.use(allowCrossDomain)
@@ -20,14 +20,39 @@ app.get("/countries", async (req,res) => {
     })
 })
 
+app.patch("/countries/:country_id", [
+    jwtRequired, passUserFromJWT, adminRequired,
+    validateRequest(post_countries)
+], async (req,res) => {
+    let country = await updateCountry({ 
+        pk: Number(req.params.country_id),
+        name: req.body.name
+    })
+    return res.json({
+        code: 204,
+        message: "success",
+        data: { country }
+    })
+})
+
 app.post("/countries", [
     validateRequest(post_countries),
-    jwtRequired, passUserFromJWT
+    jwtRequired, passUserFromJWT, adminRequired
 ], async (req,res) => {
     let country = await createCountry(req.body);
     return res.json({
         code: 201,
         message: "success",
         data: { country }
+    })
+})
+
+app.delete("/countries/:country_id", [
+    jwtRequired, passUserFromJWT, adminRequired,
+], async (req,res) => {
+    await deleteCountry(req.params.country_id);
+    return res.json({
+        code: 204,
+        message: "success"
     })
 })

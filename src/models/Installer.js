@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         profile_picture_url: {
             type: DataTypes.TEXT
-        }
+        }    
     }, options);
 
     Installer.associate = models => {

@@ -20,6 +20,12 @@ module.exports = (err, req, res, next) => {
         })
     } else {
         if (process.env.DEVELOPMENT) throw err;
-        else return res.status(500).json()
+        else {
+            return res.status(500).json({
+                status: "error",
+                message:"Internal error, please contact the developer!",
+                code: 500,
+            })
+        }
     }
 }

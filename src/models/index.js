@@ -3,6 +3,7 @@
 var fs = require('fs');
 var path = require('path');
 var Sequelize = require('sequelize');
+const { ErrorHandler } = require('../utils/error');
 var basename = path.basename(__filename);
 
 // var env = process.env.NODE_ENV || 'development';
@@ -30,6 +31,11 @@ fs
     .forEach(file => {
         if (file !== "common.js") {
             const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes)
+            model.findByPkOr404 = async pk => {
+                let obj = await model.findByPk(pk)
+                if (obj) return obj
+                throw new ErrorHandler(404, "Not found")
+            }
             db[model.name] = model;
         }
     });

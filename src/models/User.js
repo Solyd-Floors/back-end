@@ -28,13 +28,13 @@ module.exports = (sequelize, DataTypes) => {
         full_name: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        isAdmin: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: true,
+            allowNull: false
         }
     }, options);
-    User.findByPkOrError = async pk => {
-        let user = await User.findByPk(pk)
-        if (!user) throw new ErrorHandler.get404("User")
-        return user;
-    }
     User.associate = models => {
         User.hasOne(models.Installer)
     }
