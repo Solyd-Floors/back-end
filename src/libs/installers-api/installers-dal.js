@@ -2,7 +2,14 @@
 const { Installer } = require("../../models");
 
 module.exports = {
-    findAll: async () => await Installer.findAll(),
+    findAll: async (options = {}) => {
+        let where = {}
+        let relations = ["CountryId"]
+        relations.map(field_name => options[field_name] ? where[field_name] = Number(options[field_name]) : null)
+        if (options.query) where = { ...where, [Op.or]: [ { "name": { [Op.like]: '%' + options.query + '%' } } ] }
+        console.log(where,options)
+        return await Floor.findAll({ where, include: [ { model: Comment } ] })
+    },
     createInstaller: async ({
         CountryId, age, hourly_rate, job_status, UserId, profile_picture_url, status
     }) => {

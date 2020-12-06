@@ -14,7 +14,7 @@ const { doesUserHaveInstaller } = require("../users-dal");
 app.use(allowCrossDomain)
 
 app.get("/installers", async (req,res) => {
-    let installers = await findAll();
+    let installers = await findAll(req.query);
     return res.json({
         code: 200,
         message: "success",

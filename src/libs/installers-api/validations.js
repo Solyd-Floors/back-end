@@ -3,6 +3,12 @@ const yup = require("yup");
 const { param_id } = require("../utils/validations");
 
 module.exports = {
+    get_installers: yup.object().shape({
+        query: yup.object().shape({
+            job_status: yup.string().oneOf(["EMPLOYED","UNEMPLOYED"]),
+            CountryId: param_id.required()
+        })
+    }),
     post_installers: yup.object().shape({
         requestBody: yup.object().shape({
             UserId: yup.number().positive(),
