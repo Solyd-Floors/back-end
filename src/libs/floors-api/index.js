@@ -5,14 +5,14 @@ const app = module.exports = express();
 
 const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
 
-const { post_floors } = require("./validations");
+const { get_floors, post_floors, delete_floors, patch_floors } = require("./validations");
 const { findAll, createFloor, updateFloor, deleteFloor } = require("./floors-dal");
 const { ErrorHandler } = require("../../utils/error");
 
 app.use(allowCrossDomain)
 
-app.get("/floors", async (req,res) => {
-    let floors = await findAll();
+app.get("/floors", validateRequest(get_floors), async (req,res) => {
+    let floors = await findAll(req.query);
     return res.json({
         code: 200,
         message: "success",
@@ -20,24 +20,24 @@ app.get("/floors", async (req,res) => {
     })
 })
 
-
 app.patch("/floors/:floor_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(post_floors)
+    validateRequest(patch_floors)
 ], async (req,res) => {
-    let floor_type = await updateFloor({ 
+    let floor = await updateFloor({ 
         pk: req.params.floor_id,
-        name: req.body.name
+        data: req.body
     })
     return res.json({
         code: 204,
         message: "success",
-        data: { floor_type }
+        data: { floor }
     })
 })
 
 app.delete("/floors/:floor_id", [
     jwtRequired, passUserFromJWT, adminRequired,
+    validateRequest(delete_floors)
 ], async (req,res) => {
     await deleteFloor(req.params.floor_id);
     return res.json({
@@ -50,10 +50,10 @@ app.post("/floors", [
     jwtRequired, passUserFromJWT, adminRequired,
     validateRequest(post_floors)
 ], async (req,res) => {
-    let floor_type = await createFloor({ name: req.body.name })
+    let floor = await createFloor(req.body)
     return res.json({
         code: 201,
         message: "success",
-        data: { floor_type }
+        data: { floor }
     })
 })

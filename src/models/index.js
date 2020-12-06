@@ -34,7 +34,17 @@ fs
             model.findByPkOr404 = async pk => {
                 let obj = await model.findByPk(pk)
                 if (obj) return obj
-                throw new ErrorHandler(404, "Not found")
+                throw new ErrorHandler(404, `${model.name} with id=${pk} not found!`)
+            }
+            model.customUpdate = async ({pk,data}) => {
+                let keys = Object.keys(data);
+                let obj = await model.findByPkOr404(pk);
+                for (let key of keys){
+                    obj[key] = data[key]
+                }
+                await obj.save();
+                return obj;
+        
             }
             db[model.name] = model;
         }

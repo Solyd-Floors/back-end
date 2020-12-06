@@ -23,12 +23,18 @@ module.exports = (sequelize, DataTypes) => {
         },
         profile_picture_url: {
             type: DataTypes.TEXT
-        }    
+        },
+        profile_picture: {
+            type: DataTypes.VIRTUAL,
+            set: function () {
+                return this.get("profile_picture_url");
+            },
+        }
     }, options);
 
     Installer.associate = models => {
-        Installer.belongsTo(models.Country);
-        Installer.belongsTo(models.User);
+        Installer.belongsTo(models.Country, { foreignKey: { allowNull: false } });
+        Installer.belongsTo(models.User, { foreignKey: { allowNull: false } });
     }
     
     return Installer;
