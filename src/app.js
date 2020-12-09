@@ -4,7 +4,7 @@ require('express-async-errors');
 
 const models = require("./models")
 
-models.sequelize.sync({ force: false });
+models.sequelize.sync({ force: true });
 
 const http = require('http');
 const express = require('express')
