@@ -1,7 +1,6 @@
 "use strict"
 
 const { ErrorHandler } = require("../utils/error");
-const { Installer } = require("./installer");
 
 module.exports = (sequelize, DataTypes) => {
     let options = { }
