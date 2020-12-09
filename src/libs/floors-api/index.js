@@ -3,7 +3,10 @@ if (global.docs_collector) docs_collector.generalAddYAML(__dirname + "/docs.yaml
 const express = require("express");
 const app = module.exports = express();
 
-const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
+const { 
+    allowCrossDomain, validateRequest, jwtRequired, 
+    passUserFromJWT, adminRequired, query_param_string_to_integer
+} = require("../../middlewares");
 
 const { get_floors, post_floors, delete_floors, patch_floors } = require("./validations");
 const { findAll, createFloor, updateFloor, deleteFloor } = require("./floors-dal");
@@ -11,7 +14,11 @@ const { ErrorHandler } = require("../../utils/error");
 
 app.use(allowCrossDomain)
 
-app.get("/floors", validateRequest(get_floors), async (req,res) => {
+app.get("/floors", [
+    query_param_string_to_integer("min_price"),
+    query_param_string_to_integer("max_price"),
+    validateRequest(get_floors)
+], async (req,res) => {
     let floors = await findAll(req.query);
     return res.json({
         code: 200,

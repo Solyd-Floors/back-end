@@ -6,7 +6,13 @@ module.exports = {
     get_installers: yup.object().shape({
         query: yup.object().shape({
             job_status: yup.string().oneOf(["EMPLOYED","UNEMPLOYED"]),
-            CountryId: param_id.required()
+            CountryId: param_id.required(),
+            min_hourly_rate: yup.number(),
+            max_hourly_rate: yup.number().when('minPrice', {
+                is: val => Boolean(val), // alternatively: (val) => val == true
+                then: yup.number().required(),
+                otherwise: yup.number(),
+            })
         })
     }),
     post_installers: yup.object().shape({

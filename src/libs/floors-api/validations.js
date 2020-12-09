@@ -8,7 +8,13 @@ module.exports = {
             FloorCategoryId: param_id,
             BrandId: param_id,
             FloorTypeId: param_id,
-            query: yup.string()
+            query: yup.string(),
+            min_price: yup.number(),
+            max_price: yup.number().when('minPrice', {
+                is: val => Boolean(val), // alternatively: (val) => val == true
+                then: yup.number().required(),
+                otherwise: yup.number(),
+            })
         })
     }),
     post_floors: yup.object().shape({

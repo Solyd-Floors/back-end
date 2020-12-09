@@ -8,6 +8,10 @@ module.exports = {
         let relations = ["FloorCategoryId", "BrandId", "FloorTypeId"]
         relations.map(field_name => options[field_name] ? where[field_name] = Number(options[field_name]) : null)
         if (options.query) where = { ...where, [Op.or]: [ { "name": { [Op.like]: '%' + options.query + '%' } } ] }
+        if (options.min_price !== undefined && options.max_price !== undefined) {
+            where.price = { [Op.between]: [ options.min_price, options.max_price ] }
+            console.log(where.price)
+        }
         console.log(where,options)
         return await Floor.findAll({ where })
     },

@@ -30,6 +30,8 @@ const brands_api = require("./libs/brands-api")
 const installers_api = require("./libs/installers-api")
 const floors_api = require("./libs/floors-api")
 const countries_api = require("./libs/countries-api")
+const contacts_api = require("./libs/contacts-api")
+const team_members_api = require("./libs/team-members-api")
 
 docs_collector.generateSwaggerDocument()
 const api_docs = require("./libs/api-docs")
@@ -49,6 +51,8 @@ const PATHNAME_PREFIX = "/api/v1";
 app.use(PATHNAME_PREFIX, api_docs)
 app.use(PATHNAME_PREFIX, auth_api)
 app.use(PATHNAME_PREFIX, users_api)
+app.use(PATHNAME_PREFIX, team_members_api)
+app.use(PATHNAME_PREFIX, contacts_api)
 app.use(PATHNAME_PREFIX, floor_categories_api)
 app.use(PATHNAME_PREFIX, floor_types_api);
 app.use(PATHNAME_PREFIX, brands_api);

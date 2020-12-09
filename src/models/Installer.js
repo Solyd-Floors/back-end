@@ -3,7 +3,11 @@
 const { ErrorHandler } = require("../utils/error");
 
 module.exports = (sequelize, DataTypes) => {
-    let options = { }
+    let options = {
+        defaultScope: { 
+            
+        }
+    }
     let Installer = sequelize.define('Installer', {
         age: {
             type: DataTypes.INTEGER,
