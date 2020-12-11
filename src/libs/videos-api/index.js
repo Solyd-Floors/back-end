@@ -5,53 +5,53 @@ const app = module.exports = express();
 
 const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
 
-const { post_team_members, patch_team_members, delete_team_members } = require("./validations");
-const { findAll, createTeamMember, updateTeamMember, deleteTeamMember } = require("./team-members-dal");
+const { post_videos, patch_videos, delete_videos } = require("./validations");
+const { findAll, createVideo, updateVideo, deleteVideo } = require("./videos-dal");
 const { ErrorHandler } = require("../../utils/error");
 
 app.use(allowCrossDomain)
 
-app.get("/team_members", async (req,res) => {
-    let team_members = await findAll();
+app.get("/videos", async (req,res) => {
+    let videos = await findAll();
     return res.json({
         code: 200,
         message: "success",
-        data: { team_members }
+        data: { videos }
     })
 })
 
-app.post("/team_members",[
+app.post("/videos",[
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(post_team_members)
+    validateRequest(post_videos)
 ], async (req,res) => {
-    let team_member = await createTeamMember(req.body);
+    let video = await createVideo(req.body);
     return res.json({
         code: 200,
         message: "success",
-        data: { team_member }
+        data: { video }
     })
 })
 
-app.patch("/team_members/:team_member_id", [
+app.patch("/videos/:video_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(patch_team_members)
+    validateRequest(patch_videos)
 ], async (req,res) => {
-    let team_member = await updateTeamMember({
-        pk: req.params.team_member_id,
+    let video = await updateVideo({
+        pk: req.params.video_id,
         data: req.body
     });
     return res.json({
         code: 200,
         message: "success",
-        data: { team_member }
+        data: { video }
     })
 })
 
-app.delete("/team_members/:team_member_id", [
+app.delete("/videos/:video_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(delete_team_members)
+    validateRequest(delete_videos)
 ], async (req,res) => {
-    await deleteTeamMember(req.params.team_member_id)
+    await deleteVideo(req.params.video_id)
     return res.json({
         code: 204,
         message: "success"

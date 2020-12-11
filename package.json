@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/app --ignore src/libs/api-docs/swagger.json",
-    "start": "node src/app"
+    "start": "node src/app",
+    "reset-and-seed": "node src/helpers/reset-and-seed"
   },
   "repository": {
     "type": "git",

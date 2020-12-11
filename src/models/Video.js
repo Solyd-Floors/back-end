@@ -4,20 +4,20 @@ const { ErrorHandler } = require("../utils/error");
 
 module.exports = (sequelize, DataTypes) => {
     let options = { }
-    let Contact = sequelize.define('Contact', {
-        full_name: {
+    let Video = sequelize.define('Video', {
+        youtube_url: {
             type: DataTypes.STRING,
             allowNull: false
         },
-        email: {
+        title: {
             type: DataTypes.STRING,
             allowNull: false,
         },
-        reason: {
+        description: {
             type: DataTypes.STRING,
             allowNull: false
         }
     }, options);
 
-    return Contact;
+    return Video;
 };
