@@ -12,6 +12,13 @@ const { get_floors, post_floors, delete_floors, patch_floors } = require("./vali
 const { findAll, createFloor, updateFloor, deleteFloor } = require("./floors-dal");
 const { ErrorHandler } = require("../../utils/error");
 
+const multer = require('multer');
+const upload = multer();
+const uploadFile = require("../aws/uploadFile");
+const uploadMiddleware = upload.fields([
+    { name: 'thumbnail', maxCount: 1 },
+])
+
 app.use(allowCrossDomain)
 
 app.get("/floors", [
@@ -29,8 +36,14 @@ app.get("/floors", [
 
 app.patch("/floors/:floor_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(patch_floors)
+    uploadMiddleware, validateRequest(patch_floors)
 ], async (req,res) => {
+    if (req.files) {
+        if (
+            req.files["thumbnail"] &&
+            req.files["thumbnail"].length
+        ) req.files["thumbnail"] = req.body["thumbnail_url"] = await uploadFile(req.files["thumbnail"][0]);
+    }
     let floor = await updateFloor({ 
         pk: req.params.floor_id,
         data: req.body
@@ -55,8 +68,14 @@ app.delete("/floors/:floor_id", [
 
 app.post("/floors", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(post_floors)
+    uploadMiddleware, validateRequest(post_floors)
 ], async (req,res) => {
+    if (req.files) {
+        if (
+            req.files["thumbnail"] &&
+            req.files["thumbnail"].length
+        ) req.files["thumbnail"] = req.body["thumbnail_url"] = await uploadFile(req.files["thumbnail"][0]);
+    }
     let floor = await createFloor(req.body)
     return res.json({
         code: 201,

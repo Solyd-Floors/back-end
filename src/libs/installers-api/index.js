@@ -11,6 +11,13 @@ const { ErrorHandler } = require("../../utils/error");
 
 const { doesUserHaveInstaller } = require("../users-dal");
 
+const multer = require('multer');
+const upload = multer();
+const uploadFile = require("../aws/uploadFile");
+const uploadMiddleware = upload.fields([
+    { name: 'profile_picture', maxCount: 1 },
+])
+
 app.use(allowCrossDomain)
 
 app.get("/installers", async (req,res) => {
@@ -23,7 +30,7 @@ app.get("/installers", async (req,res) => {
 })
 
 app.post("/installers", [ 
-    validateRequest(post_installers),
+    uploadMiddleware, validateRequest(post_installers),
     jwtRequired, passUserFromJWT,
 ], async (req,res) => {
     let UserId = req.body.UserId || req.user.id
@@ -33,9 +40,14 @@ app.post("/installers", [
     if (await doesUserHaveInstaller(UserId)) {
         throw new ErrorHandler(403, "Already exists", [ `User with id ${req.body.UserId || UserId} is already an installer`])
     }
+    if (req.files) {
+        if (
+            req.files["profile_picture"] &&
+            req.files["profile_picture"].length
+        ) req.files["profile_picture"] = req.body["profile_picture_url"] = await uploadFile(req.files["profile_picture"][0]);
+    }
     let installer = await createInstaller({
-        ...req.body, profile_picture_url: req.body.profile_picture, // TODO: convert src to file
-        UserId
+        ...req.body, UserId
     })
     return res.json({
         code: 201,
@@ -45,18 +57,23 @@ app.post("/installers", [
 })
 
 app.patch("/installers/:installer_id",[
-    jwtRequired, passUserFromJWT,
+    uploadMiddleware,jwtRequired, passUserFromJWT, 
     validateRequest(patch_installers)
 ], async (req,res) => {
     // TODO: UserId checks
     if (
         (req.body.status || req.body.UserId) && !req.user.isAdmin
     ) throw new ErrorHandler(401, "Unauthorized", [ "Not authorized to change status"])
+    if (req.files) {
+        if (
+            req.files["profile_picture"] &&
+            req.files["profile_picture"].length
+        ) req.files["profile_picture"] = req.body["profile_picture_url"] = await uploadFile(req.files["profile_picture"][0]);
+    }
     let installer = await updateInstaller({
         pk: req.params.installer_id,
         data: { 
             ...req.body, UserId: req.body.UserId || req.user.id,
-            profile_picture_url: req.body.profile_picture 
         }
     })
     return res.json({
