@@ -1,0 +1,40 @@
+schemas:
+  Color:
+    required:
+      - id
+      - name
+      - color
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      name:
+        type: string
+        example: "Typename"
+      color:
+        type: string
+        example: "#000"
+paths:
+  "/floor_types":
+    get:
+      tags:
+        - Color
+      summary: Get all floor types
+      responses:
+        '200':
+          description: Returns a list of floor types
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - "$ref": "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data: 
+                        type: object
+                        properties:
+                          floor_types:
+                            type: array
+                            items:
+                              "$ref": "#/components/schemas/Color"
