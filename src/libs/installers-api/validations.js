@@ -7,8 +7,14 @@ module.exports = {
         query: yup.object().shape({
             job_status: yup.string().oneOf(["EMPLOYED","UNEMPLOYED"]),
             CountryId: param_id.required(),
+            min_age: yup.number(),
+            max_age: yup.number().when('min_age', {
+                is: val => Boolean(val), // alternatively: (val) => val == true
+                then: yup.number().required(),
+                otherwise: yup.number(),
+            }),
             min_hourly_rate: yup.number(),
-            max_hourly_rate: yup.number().when('minPrice', {
+            max_hourly_rate: yup.number().when('min_hourly_rate', {
                 is: val => Boolean(val), // alternatively: (val) => val == true
                 then: yup.number().required(),
                 otherwise: yup.number(),

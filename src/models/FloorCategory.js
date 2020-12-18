@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     }, options);
 
     FloorCategory.associate = models => {
-        
+        FloorCategory.hasMany(models.Floor)
     }
     
     return FloorCategory;

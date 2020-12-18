@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     }, options);
 
     Brand.associate = models => {
-        
+        Brand.hasMany(models.Floor)
     }
     
     return Brand;

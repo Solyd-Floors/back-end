@@ -9,7 +9,7 @@ const {
 } = require("../../middlewares");
 
 const { get_floors, post_floors, delete_floors, patch_floors } = require("./validations");
-const { findAll, createFloor, updateFloor, deleteFloor } = require("./floors-dal");
+const { findAll, createFloor, updateFloor, deleteFloor, findOne } = require("./floors-dal");
 const { ErrorHandler } = require("../../utils/error");
 
 const multer = require('multer');
@@ -20,6 +20,15 @@ const uploadMiddleware = upload.fields([
 ])
 
 app.use(allowCrossDomain)
+
+app.get("/floors/:floor_id", async (req,res) => {
+    let floor = await findOne(req.params.floor_id)
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { floor }
+    })
+})
 
 app.get("/floors", [
     query_param_string_to_integer("min_price"),

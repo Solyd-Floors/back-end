@@ -11,8 +11,11 @@ module.exports = {
         if (options.job_status) where.job_status = options.job_status
         if (options.min_hourly_rate !== undefined && options.max_hourly_rate !== undefined) {
             where.hourly_rate = { [Op.between]: [ options.min_hourly_rate, options.max_hourly_rate ] }
-            console.log(where.price)
         }
+        if (options.min_age !== undefined && options.max_age !== undefined) {
+            where.age = { [Op.between]: [ options.min_age, options.max_age ] }
+        }
+        console.log({options, where})
         let installers = await Installer.findAll({ where })
         installers = JSON.parse(JSON.stringify(installers))
         for (installer of installers) installer.User = await User.findByPk(installer.UserId)

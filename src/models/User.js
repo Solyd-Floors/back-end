@@ -36,6 +36,8 @@ module.exports = (sequelize, DataTypes) => {
     }, options);
     User.associate = models => {
         User.hasOne(models.Installer)
+        User.hasMany(models.Floor)
+        
     }
     
     return User;

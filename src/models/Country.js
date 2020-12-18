@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     }, options);
 
     Country.associate = models => {
-        
+        Country.hasMany(models.Installer)
     }
     
     return Country;

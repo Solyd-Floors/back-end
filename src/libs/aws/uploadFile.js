@@ -2,7 +2,7 @@ const S3_BUCKET = require("./index");
 const { v1: uuid } = require('uuid')
 
 module.exports = async (file) => {
-    let key = `${uuid()}-${file.originalname}`;
+    let key = `${uuid()}`;
     let data = {
         Bucket: process.env.S3_BUCKET, //"uxstories",
         Key: key, // file from form

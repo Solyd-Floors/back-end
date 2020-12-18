@@ -3,9 +3,12 @@
 const { ErrorHandler } = require("../utils/error");
 
 module.exports = (sequelize, DataTypes) => {
-    let options = { }
     let Floor = sequelize.define('Floor', {
         name: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        description: {
             type: DataTypes.STRING,
             allowNull: false
         },
@@ -21,11 +24,12 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false
         }
-    }, options);
+    });
 
     Floor.associate = models => {
         Floor.belongsTo(models.FloorCategory, { foreignKey: { allowNull: false } })
         Floor.belongsTo(models.FloorType, { foreignKey: { allowNull: false } })
+        Floor.belongsTo(models.Color, { foreignKey: { allowNull: false } })
         Floor.belongsTo(models.Brand, { foreignKey: { allowNull: false } })
         Floor.belongsTo(models.User, { foreignKey: { allowNull: false } })
     }

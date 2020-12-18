@@ -31,8 +31,8 @@ fs
     .forEach(file => {
         if (file !== "common.js") {
             const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes)
-            model.findByPkOr404 = async pk => {
-                let obj = await model.findByPk(pk)
+            model.findByPkOr404 = async (pk,options={}) => {
+                let obj = await model.findByPk(pk,options)
                 if (obj) return obj
                 throw new ErrorHandler(404, `${model.name} with id=${pk} not found!`)
             }
