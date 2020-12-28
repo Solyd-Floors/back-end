@@ -1,0 +1,42 @@
+schemas:
+  FloorBox:
+    required:
+      - id
+      - width
+      - height
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      width:
+        type: integer
+        example: 100
+      height:
+        type: integer
+        example: 120
+paths:
+  "/floor_boxes":
+    get:
+      tags:
+        - FloorBoxes
+      summary: Get all FloorBoxes
+    post:
+      tags:
+        - FloorBoxes
+      summary: Create FloorBox
+  "/floor_boxes/:floor_box_id":
+    get:
+      tags:
+        - FloorBoxes
+      summary: Get FloorBox
+    patch:
+      tags:
+        - FloorBoxes
+      summary: Update FloorBox
+    delete:
+      tags:
+        - FloorBoxes
+      summary: Delete FloorBox
+    
+

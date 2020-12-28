@@ -17,11 +17,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         price: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
-        quantity: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.FLOAT,
             allowNull: false
         }
     });
@@ -32,6 +28,11 @@ module.exports = (sequelize, DataTypes) => {
         Floor.belongsTo(models.Color, { foreignKey: { allowNull: false } })
         Floor.belongsTo(models.Brand, { foreignKey: { allowNull: false } })
         Floor.belongsTo(models.User, { foreignKey: { allowNull: false } })
+        Floor.belongsToMany(models.FloorTileSize, { 
+            // foreignKey: { allowNull: false },
+            through: models.FloorFloorTileSize ,
+            foreignKey: "FloorId"
+        })
     }
     
     return Floor;

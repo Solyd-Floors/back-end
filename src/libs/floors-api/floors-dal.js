@@ -1,12 +1,14 @@
 
 const { Floor, FloorType, FloorCategory, Brand, User, Color } = require("../../models");
 const { Op } = require("sequelize");
+const { getFloorWithFloorTileSizes, updateFloorTileSizes } = require("../floor-floor-tile-sizes-dal");
 
 module.exports = {
     findOne: async pk => {
         let floor = await Floor.findByPkOr404(pk,{ 
             include: [ FloorType, FloorCategory, Brand, Color ] 
         })
+        floor = await getFloorWithFloorTileSizes({ floor });
         // Insert User property into Floor
         floor = JSON.parse(JSON.stringify(floor))
         floor.User = await User.findByPkOr404(floor.UserId)
@@ -22,25 +24,42 @@ module.exports = {
             console.log(where.price)
         }
         console.log(where,options)
-        return await Floor.findAll({ where })
+        let floors = await Floor.findAll({ where })
+        let ops = []
+        for (let floor of floors) {
+            ops.push(getFloorWithFloorTileSizes({ floor }))
+        }
+        return await Promise.all(ops);
     },
     createFloor: async ({ 
-        name, description, thumbnail_url, price, quantity, 
+        name, description, thumbnail_url, price,
         FloorCategoryId, FloorId, ColorId, FloorTypeId,
         BrandId, UserId,
-     }) => await Floor.create({ 
-        name, description, thumbnail_url, price,
-        quantity, FloorCategoryId, 
-        FloorId, ColorId, BrandId, UserId, FloorTypeId
-     }),
+     }) => {
+         let floor = await Floor.create({ 
+            name, description, thumbnail_url, price,
+            FloorCategoryId, 
+            FloorId, ColorId, BrandId, UserId, FloorTypeId
+         })
+         await updateFloorTileSizes({ floor,floor_tile_sizes });
+         return await getFloorWithFloorTileSizes({ floor });
+ 
+     },
      updateFloor: async ({pk,data}) => {
         let keys = Object.keys(data);
         let floor = await Floor.findByPkOr404(pk);
         for (let key of keys){
-            floor[key] = data[key]
+            if (key === "floor_tile_sizes"){
+                await updateFloorTileSizes({ 
+                    floor, 
+                    floor_tile_sizes: data["floor_tile_sizes"] 
+                });
+            } else {
+                floor[key] = data[key]
+            }
         }
         await floor.save();
-        return floor;
+        return await getFloorWithFloorTileSizes({ floor });
     },
     deleteFloor: async (pk) => await (await (await Floor.findByPkOr404(pk))).destroy()
 }

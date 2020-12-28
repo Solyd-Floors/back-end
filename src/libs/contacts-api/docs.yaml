@@ -1,2 +1,43 @@
 schemas:
-  
+  Contact:
+    required:
+      - id
+      - full_name
+      - email
+      - reason
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      full_name:
+        type: string
+        example: "John Doe"
+      email:
+        type: string
+        example: "john@example.com"
+paths:
+  "/contacts":
+    get:
+      tags:
+        - Contacts
+      summary: Get all Contacts
+    post:
+      tags:
+        - Contacts
+      summary: Create contact
+  "/contacts/:contact_id":
+    get:
+      tags:
+        - Contacts
+      summary: Get Contact
+    patch:
+      tags:
+        - Contacts
+      summary: Update Contact
+    delete:
+      tags:
+        - Contacts
+      summary: Delete Contact
+    
+

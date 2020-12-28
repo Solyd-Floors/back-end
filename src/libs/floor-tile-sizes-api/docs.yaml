@@ -1,0 +1,42 @@
+schemas:
+  FloorTileSize:
+    required:
+      - id
+      - width
+      - height
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      width:
+        type: integer
+        example: 100
+      height:
+        type: integer
+        example: 120
+paths:
+  "/floor_tile_sizes":
+    get:
+      tags:
+        - FloorTileSizes
+      summary: Get all FloorTileSizes
+    post:
+      tags:
+        - FloorTileSizes
+      summary: Create floor tile size
+  "/floor_tile_sizes/:floor_tile_size_id":
+    get:
+      tags:
+        - FloorTileSizes
+      summary: Get FloorTileSize
+    patch:
+      tags:
+        - FloorTileSizes
+      summary: Update FloorTileSize
+    delete:
+      tags:
+        - FloorTileSizes
+      summary: Delete FloorTileSize
+    
+

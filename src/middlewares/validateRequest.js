@@ -10,12 +10,19 @@ module.exports = (yupSchema,strict = true,options) => {
     return async (req,res,next) => {
         if (options){
             let {
-                admin_or_id_is_same_as_val_of_param
+                admin_or_id_is_same_as_val_of_param,
+                id_is_same_as_val_of_param
             } = options
             if (admin_or_id_is_same_as_val_of_param){
                 if (
                     req.user.isAdmin ||
                     req.user.id === Number(req.params[admin_or_id_is_same_as_val_of_param])
+                ) {}
+                else throw new ErrorHandler(401, "Unauthorized")
+            }
+            if (id_is_same_as_val_of_param) {
+                if (
+                    req.user.id === Number(req.params[id_is_same_as_val_of_param])
                 ) {}
                 else throw new ErrorHandler(401, "Unauthorized")
             }

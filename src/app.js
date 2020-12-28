@@ -24,16 +24,19 @@ const { errorHandler, allowCrossDomain } = require("./middlewares")
 
 const users_api = require("./libs/users-api")
 const auth_api = require("./libs/auth-api")
-const floor_categories_api = require("./libs/floor-categories-api")
-const floor_types_api = require("./libs/floor-types-api")
 const brands_api = require("./libs/brands-api")
 const installers_api = require("./libs/installers-api")
 const floors_api = require("./libs/floors-api")
+const floor_types_api = require("./libs/floor-types-api")
+const floor_categories_api = require("./libs/floor-categories-api")
+const floor_tile_sizes_api = require("./libs/floor-tile-sizes-api")
+const floor_boxes_api = require("./libs/floor-boxes-api")
 const countries_api = require("./libs/countries-api")
 const contacts_api = require("./libs/contacts-api")
 const team_members_api = require("./libs/team-members-api")
 const videos_api = require("./libs/videos-api")
 const colors_api = require("./libs/colors-api")
+const carts_api = require("./libs/carts-api")
 
 docs_collector.generateSwaggerDocument()
 const api_docs = require("./libs/api-docs")
@@ -55,14 +58,17 @@ app.use(PATHNAME_PREFIX, auth_api)
 app.use(PATHNAME_PREFIX, users_api)
 app.use(PATHNAME_PREFIX, team_members_api)
 app.use(PATHNAME_PREFIX, contacts_api)
-app.use(PATHNAME_PREFIX, floor_categories_api)
-app.use(PATHNAME_PREFIX, floor_types_api);
 app.use(PATHNAME_PREFIX, brands_api);
 app.use(PATHNAME_PREFIX, installers_api);
 app.use(PATHNAME_PREFIX, floors_api);
+app.use(PATHNAME_PREFIX, floor_types_api);
+app.use(PATHNAME_PREFIX, floor_categories_api)
+app.use(PATHNAME_PREFIX, floor_tile_sizes_api)
+app.use(PATHNAME_PREFIX, floor_boxes_api)
 app.use(PATHNAME_PREFIX, countries_api);
 app.use(PATHNAME_PREFIX, videos_api);
 app.use(PATHNAME_PREFIX, colors_api);
+app.use(PATHNAME_PREFIX, carts_api);
 
 app.get('/', (req, res) => res.json({ versions: [ "v1"] }))
 app.get("*", (req,res) => res.status(404).json({

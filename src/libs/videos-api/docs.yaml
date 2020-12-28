@@ -1,2 +1,46 @@
 schemas:
-  
+  Video:
+    required:
+      - id
+      - youtube_url
+      - title
+      - description
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      youtube_url:
+        type: string
+        example: "www.domain.com/video_link"
+      title:
+        type: string
+        example: "Title"
+      description:
+        type: string
+        example: "Description"
+paths:
+  "/videos":
+    get:
+      tags:
+        - Videos
+      summary: Get all Videos
+    post:
+      tags:
+        - Videos
+      summary: Create video
+  "/videos/:video_id":
+    get:
+      tags:
+        - Videos
+      summary: Get video
+    patch:
+      tags:
+        - Videos
+      summary: Update video
+    delete:
+      tags:
+        - Videos
+      summary: Delete video
+    
+

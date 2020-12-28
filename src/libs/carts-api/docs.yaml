@@ -1,0 +1,41 @@
+schemas:
+  Cart:
+    required:
+      - id
+      - UserId
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      UserId:
+        type: integer
+        example: 1
+paths:
+  "/carts":
+    get:
+      tags:
+        - Carts
+      summary: Get all Carts
+    post:
+      tags:
+        - Carts
+      summary: Create floor tile size
+  "/carts/:cart_id":
+    get:
+      tags:
+        - Carts
+      summary: Get Cart
+    patch:
+      tags:
+        - Carts
+      summary: Update Cart
+    delete:
+      tags:
+        - Carts
+      summary: Delete Cart
+  "/carts/discard":
+    post:
+      tags:
+        - Carts
+      summary: Create floor tile size

@@ -5,7 +5,8 @@ const app = module.exports = express();
 
 const { 
     allowCrossDomain, validateRequest, jwtRequired, 
-    passUserFromJWT, adminRequired, query_param_string_to_integer
+    passUserFromJWT, adminRequired, query_param_string_to_integer,
+    body_param_string_to_integer
 } = require("../../middlewares");
 
 const { get_floors, post_floors, delete_floors, patch_floors } = require("./validations");
@@ -77,7 +78,8 @@ app.delete("/floors/:floor_id", [
 
 app.post("/floors", [
     jwtRequired, passUserFromJWT, adminRequired,
-    uploadMiddleware, validateRequest(post_floors)
+    uploadMiddleware, body_param_string_to_integer("price"), 
+    validateRequest(post_floors)
 ], async (req,res) => {
     if (req.files) {
         if (
