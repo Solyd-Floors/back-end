@@ -2,15 +2,23 @@
 const { Floor, FloorType, FloorCategory, Brand, User, Color } = require("../../models");
 const { Op } = require("sequelize");
 const { getFloorWithFloorTileSizes, updateFloorTileSizes } = require("../floor-floor-tile-sizes-dal");
+const { getFloorBoxesInfo } = require("../floor-boxes-dal");
 
 module.exports = {
-    findOne: async pk => {
-        let floor = await Floor.findByPkOr404(pk,{ 
+    findOne: async ({floor_id, ...stock_info_args}) => {
+        let floor = await Floor.findByPkOr404(floor_id,{ 
             include: [ FloorType, FloorCategory, Brand, Color ] 
         })
         floor = await getFloorWithFloorTileSizes({ floor });
         // Insert User property into Floor
         floor = JSON.parse(JSON.stringify(floor))
+        if (Object.keys(stock_info_args).length == 3) {
+            floor.stock_info = await getFloorBoxesInfo({ 
+                FloorId: floor.id,
+                ...stock_info_args
+            }) 
+        }
+        // mil_type, FloorId, FloorTileSizeId, limit, exclude_ids
         floor.User = await User.findByPkOr404(floor.UserId)
         return floor;
     },
@@ -34,7 +42,7 @@ module.exports = {
     createFloor: async ({ 
         name, description, thumbnail_url, price,
         FloorCategoryId, FloorId, ColorId, FloorTypeId,
-        BrandId, UserId,
+        BrandId, UserId, floor_tile_sizes
      }) => {
          let floor = await Floor.create({ 
             name, description, thumbnail_url, price,
@@ -52,7 +60,7 @@ module.exports = {
             if (key === "floor_tile_sizes"){
                 await updateFloorTileSizes({ 
                     floor, 
-                    floor_tile_sizes: data["floor_tile_sizes"] 
+                    floor_tile_sizes: data["floor_tile_sizes"]
                 });
             } else {
                 floor[key] = data[key]

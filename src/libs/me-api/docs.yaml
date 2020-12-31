@@ -1,0 +1,17 @@
+schemas:
+paths:
+  "/me/cart":
+    get:
+      tags:
+        - Me
+      summary: Get my cart
+  "/me/cart/discard":
+    post:
+      tags: 
+        - Me
+      summary: Discard my active cart
+  "/me/cart/add/floor_boxes":
+    post:
+      tags:
+        - Me
+      summary: Insert floor boxes into my cart

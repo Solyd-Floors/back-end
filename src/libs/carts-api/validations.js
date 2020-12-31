@@ -1,8 +1,6 @@
 
 const yup = require("yup");
-const { param_id, id } = require("../utils/validations");
-
-let mil_type_schema = yup.number().integer().positive().required()
+const { param_id } = require("../utils/validations");
 
 module.exports = {
     get_carts_id: yup.object().shape({
@@ -31,13 +29,6 @@ module.exports = {
         }),
         params: yup.object().shape({
             carts_id: param_id.required()
-        })
-    }),
-    post_carts_add_floor_boxes: yup.object().shape({
-        requestBody: yup.object().shape({
-            mil_type: mil_type_schema,
-            FloorId: id.required(),
-            floor_tile_sizes: yup.array().of(mil_type_schema),
         })
     })
 }

@@ -23,6 +23,7 @@ global.docs_collector = docs_collector;
 const { errorHandler, allowCrossDomain } = require("./middlewares")
 
 const users_api = require("./libs/users-api")
+const me_api = require("./libs/me-api")
 const auth_api = require("./libs/auth-api")
 const brands_api = require("./libs/brands-api")
 const installers_api = require("./libs/installers-api")
@@ -39,7 +40,7 @@ const colors_api = require("./libs/colors-api")
 const carts_api = require("./libs/carts-api")
 
 docs_collector.generateSwaggerDocument()
-const api_docs = require("./libs/api-docs")
+const api_docs = require("./libs/api-docs");
 
 const app = express();
 const server = http.createServer(app)
@@ -56,6 +57,7 @@ const PATHNAME_PREFIX = "/api/v1";
 app.use(PATHNAME_PREFIX, api_docs)
 app.use(PATHNAME_PREFIX, auth_api)
 app.use(PATHNAME_PREFIX, users_api)
+app.use(PATHNAME_PREFIX, me_api)
 app.use(PATHNAME_PREFIX, team_members_api)
 app.use(PATHNAME_PREFIX, contacts_api)
 app.use(PATHNAME_PREFIX, brands_api);

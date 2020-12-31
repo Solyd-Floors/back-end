@@ -3,6 +3,11 @@
 const { ErrorHandler } = require("../utils/error");
 
 module.exports = (sequelize, DataTypes) => {
+    let options = {
+        // defaultScope: { 
+        //     include: { all: true }
+        // }
+    }
     let Floor = sequelize.define('Floor', {
         name: {
             type: DataTypes.STRING,
@@ -20,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.FLOAT,
             allowNull: false
         }
-    });
+    }, options);
 
     Floor.associate = models => {
         Floor.belongsTo(models.FloorCategory, { foreignKey: { allowNull: false } })

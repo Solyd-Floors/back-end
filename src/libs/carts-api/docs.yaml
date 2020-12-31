@@ -34,8 +34,3 @@ paths:
       tags:
         - Carts
       summary: Delete Cart
-  "/carts/discard":
-    post:
-      tags:
-        - Carts
-      summary: Create floor tile size

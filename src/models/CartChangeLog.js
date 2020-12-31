@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
             ),
             allowNull: false,
         },
+        box_amount: DataTypes.INTEGER
     });
 
     CartChangeLog.associate = models => {

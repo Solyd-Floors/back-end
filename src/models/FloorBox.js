@@ -14,13 +14,18 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         status: {
-            type: DataTypes.ENUM("ACTIVE","PURCHASED")
+            type: DataTypes.ENUM("ACTIVE","PURCHASED"),
+            defaultValue: "ACTIVE"
         }
     });
 
     FloorBox.associate = models => {
         FloorBox.belongsTo(models.Floor, { foreignKey: { allowNull: false } })
         FloorBox.belongsTo(models.FloorTileSize, { foreignKey: { allowNull: false } })
+        FloorBox.belongsToMany(models.Cart, {
+            through: models.CartFloorBox,
+            foreignKey: "FloorBoxId"
+        })
     }
     
     return FloorBox;

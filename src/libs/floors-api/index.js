@@ -9,7 +9,7 @@ const {
     body_param_string_to_integer
 } = require("../../middlewares");
 
-const { get_floors, post_floors, delete_floors, patch_floors } = require("./validations");
+const { get_floors, post_floors, delete_floors, patch_floors, get_floors_floor_id } = require("./validations");
 const { findAll, createFloor, updateFloor, deleteFloor, findOne } = require("./floors-dal");
 const { ErrorHandler } = require("../../utils/error");
 
@@ -22,8 +22,10 @@ const uploadMiddleware = upload.fields([
 
 app.use(allowCrossDomain)
 
-app.get("/floors/:floor_id", async (req,res) => {
-    let floor = await findOne(req.params.floor_id)
+app.get("/floors/:floor_id",[
+    validateRequest(get_floors_floor_id)
+], async (req,res) => {
+    let floor = await findOne({ floor_id: req.params.floor_id, ...req.query })
     return res.json({
         code: 200,
         message: "success",
@@ -53,6 +55,9 @@ app.patch("/floors/:floor_id", [
             req.files["thumbnail"] &&
             req.files["thumbnail"].length
         ) req.files["thumbnail"] = req.body["thumbnail_url"] = await uploadFile(req.files["thumbnail"][0]);
+    }
+    if (req.body.floor_tile_sizes){
+        req.body.floor_tile_sizes = req.body.floor_tile_sizes.map(x => Number(x))
     }
     let floor = await updateFloor({ 
         pk: req.params.floor_id,
@@ -87,6 +92,7 @@ app.post("/floors", [
             req.files["thumbnail"].length
         ) req.files["thumbnail"] = req.body["thumbnail_url"] = await uploadFile(req.files["thumbnail"][0]);
     }
+    req.body.floor_tile_sizes = req.body.floor_tile_sizes.map(x => Number(x))
     let floor = await createFloor(req.body)
     return res.json({
         code: 201,
