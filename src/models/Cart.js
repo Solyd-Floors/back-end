@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
             through: models.CartFloorBox,
             foreignKey: "CartId"
         })
-        Cart.hasMany(models.CartFloorItem)
+        Cart.hasMany(models.CartFloorItem, { foreignKey: { allowNull: false } })
     }
     
     return Cart;

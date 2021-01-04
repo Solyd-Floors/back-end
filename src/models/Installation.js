@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.ENUM(
                 "NOT_STARTED",
                 "STARTED",
+                "FINISHED"
             ),
             allowNull: false,
             defaultValue: "NOT_STARTED"

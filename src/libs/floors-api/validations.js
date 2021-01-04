@@ -32,7 +32,6 @@ module.exports = {
         requestBody: yup.object().shape({
             name: yup.string().required(),
             description: yup.string().required(),
-            price: yup.number().positive().required(),
             FloorCategoryId: positive_integer_as_string.required(),
             FloorTypeId: positive_integer_as_string.required(),
             BrandId: positive_integer_as_string.required(),
@@ -50,7 +49,6 @@ module.exports = {
         requestBody: yup.object().shape({
             name: yup.string(),
             description: yup.string(),
-            price: positive_integer_as_string,
             FloorCategoryId: positive_integer_as_string,
             FloorTypeId: positive_integer_as_string,
             BrandId: positive_integer_as_string,

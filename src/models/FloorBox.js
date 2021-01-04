@@ -16,6 +16,13 @@ module.exports = (sequelize, DataTypes) => {
         status: {
             type: DataTypes.ENUM("ACTIVE","PURCHASED"),
             defaultValue: "ACTIVE"
+        },
+        price: {
+            type: DataTypes.VIRTUAL,
+            set: function(val) {
+                let is_12_mm = this.get("mil_type") == 12
+                return is_12_mm ? 2.37 : 2.85
+            }
         }
     });
 

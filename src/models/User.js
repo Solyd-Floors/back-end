@@ -6,6 +6,11 @@ module.exports = (sequelize, DataTypes) => {
     let options = { 
         defaultScope: {
             attributes: { exclude: [ "password" ] },
+            order: [
+                [
+                    "isGuest", "ASC"
+                ]
+            ],
             include: [{ all: true }]
         },
         scopes: {
@@ -31,6 +36,11 @@ module.exports = (sequelize, DataTypes) => {
         isAdmin: {
             type: DataTypes.BOOLEAN,
             defaultValue: true,
+            allowNull: false
+        },
+        isGuest: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
             allowNull: false
         }
     }, options);

@@ -1,21 +1,12 @@
 
 const { createCartFloorBox } = require("../cart-floor-boxes-dal");
 const { getFloorBoxesInfo } = require("../floor-boxes-dal");
-const { findOne: findOneCart } = require("../carts-dal");
-const { createCart } = require("../carts-dal");
 const { ErrorHandler } = require("../../utils/error");
 const { findAll: findAllCartFloorBoxes } = require("../cart-floor-boxes-dal");
 const { FloorBox } = require("../../models");
 const { findOne: findOneCartFloorItem, findAllOnCart, removeBoxesFromCartFloorItem, deleteCartFloorItem } = require("../cart-floor-items-dal");
 const { createCartFloorItem, findAllForCart: findAllForCartCartFloorItems } = require("../cart-floor-items-dal");
-
-const getUserActiveCart = async ({
-    UserId
-}) => {
-    let cart = await findOneCart({ UserId, status: "ACTIVE"})
-    if (!cart) cart = await createCart({UserId})
-    return cart;
-}
+const { getUserActiveCart } = require("../me-dal")
 
 const addBoxToCart = async ({ CartId, FloorBoxId }) => {
     let cartFloorBox = await createCartFloorBox({ 
@@ -25,10 +16,10 @@ const addBoxToCart = async ({ CartId, FloorBoxId }) => {
 }
 
 module.exports = {
-    getUserActiveCart,
     discardCart: async UserId => {
-        let cart = await getUserActiveCart({ UserId })
+        let cart = await getUserActiveCart({ UserId, not_json: true })
         cart.status = "DISCARDED"
+        console.log({cart},cart.update, cart.save)
         await cart.save();
         return cart;
     },
@@ -59,25 +50,24 @@ module.exports = {
     addBoxesToCart2: async ({
         UserId, mil_type, boxes_amount, FloorTileSizeId, FloorId 
     }) => {
-        let { id: CartId } = await getUserActiveCart({ UserId });
+        let cart = await getUserActiveCart({ UserId });
+        let { id: CartId } = cart
+        let stock_info = await getFloorBoxesInfo({
+            mil_type, FloorId, FloorTileSizeId, limit: boxes_amount, cart
+        })
+
+        let stock_available = stock_info.boxes >= boxes_amount
+
+        if (!stock_available) throw new ErrorHandler(403, "No stock available", stock_info)
+
         let cart_floor_item = await findOneCartFloorItem({
             CartId, mil_type, FloorTileSizeId, FloorId 
         })
-        let desired_boxes_amount = boxes_amount
-        if (cart_floor_item) desired_boxes_amount += cart_floor_item.boxes_amount
-
-        let stock_info = await getFloorBoxesInfo({
-            mil_type, FloorId, FloorTileSizeId, limit: desired_boxes_amount
-        })
-        console.log({desired_boxes_amount, CartId, mil_type, FloorTileSizeId, FloorId})
-        let stock_available = stock_info.boxes >= desired_boxes_amount
-        if (!stock_available) throw new ErrorHandler(403, "No stock available", stock_info)
-
         if (!cart_floor_item) cart_floor_item = await createCartFloorItem({
             CartId, mil_type, boxes_amount, FloorTileSizeId, FloorId
         })
         else {
-            cart_floor_item.boxes_amount = desired_boxes_amount
+            cart_floor_item.boxes_amount += boxes_amount
             await cart_floor_item.save()
         }
         return cart_floor_item;
@@ -108,9 +98,10 @@ module.exports = {
     removeBoxesFromCart: async ({
         UserId, mil_type, boxes_amount, FloorTileSizeId, FloorId 
     }) => {
-        let { id: CartId } = await getUserActiveCart({ UserId });
+        let cart = await getUserActiveCart({ UserId });
+        let { id: CartId } = cart
         let info = await removeBoxesFromCartFloorItem({
-            UserId, CartId, mil_type, boxes_amount, FloorTileSizeId, FloorId
+            UserId, CartId, mil_type, boxes_amount, FloorTileSizeId, FloorId, cart
         })
         if (info === false) throw new ErrorHandler(403, "No item of this type to be managed.")
         return info
@@ -119,7 +110,7 @@ module.exports = {
         UserId, CartFloorItemId
     }) => {
         let { id: CartId } = await getUserActiveCart({ UserId });
-        await deleteCartFloorItem({ CartFloorItemId })
+        await deleteCartFloorItem({ CartId, CartFloorItemId })
         return await getUserActiveCart({ UserId });
     }
 }

@@ -11,7 +11,9 @@ const createToken = require("../utils/createToken")
 const { findUserByPk } = require("../users-dal");
 const { post_auth } = require("./validations");
 
-const validateCredentials = require("./validateCredentials")
+const validateCredentials = require("./validateCredentials");
+const jwtNotRequired = require("../../middlewares/jwtNotRequired");
+const passUserOrCreateGuestFromJWT = require("../../middlewares/passUserOrCreateGuestFromJWT");
 
 const getResponse = user => ({
     status: "success",
@@ -25,10 +27,8 @@ const getResponse = user => ({
 
 app.use(allowCrossDomain)
 
-app.get('/auth', jwtRequired, async (req, res) => {
-    let user = await findUserByPk(req.auth.userId);
-    if (!user) throw new ErrorHandler(401, "Unauthorized")
-    return res.json(getResponse(user))
+app.get('/auth', [jwtNotRequired, passUserOrCreateGuestFromJWT], async (req, res) => {
+    return res.json(getResponse(req.user))
 });
 
 app.post('/auth', validateRequest(post_auth), async (req, res) => {

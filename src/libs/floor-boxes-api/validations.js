@@ -2,7 +2,7 @@
 const yup = require("yup");
 const { param_id, id, positive_integer_as_string } = require("../utils/validations");
 
-let mil_type_schema = yup.number().integer().positive().required()
+let mil_type_schema = yup.number().integer().positive()
 
 module.exports = {
     get_floor_boxes_info: yup.object().shape({
@@ -24,8 +24,7 @@ module.exports = {
     }),
     post_floor_boxes: yup.object().shape({
         requestBody: yup.object().shape({
-            SKU: yup.string().required(),
-            mil_type: mil_type_schema,
+            mil_type: mil_type_schema.required(),
             FloorId: id.required(),
             FloorTileSizeId: id.required(),
         })
@@ -37,10 +36,9 @@ module.exports = {
     }),
     patch_floor_boxes: yup.object().shape({
         requestBody: yup.object().shape({
-            width: yup.number().integer().positive(),
-            height: yup.number().integer().positive(),
+            mil_type: mil_type_schema,
             FloorId: id,
-            FloorTileSizeId: id.required(),
+            FloorTileSizeId: id,
         }),
         params: yup.object().shape({
             floor_box_id: param_id.required()

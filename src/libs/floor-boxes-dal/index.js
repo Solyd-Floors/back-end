@@ -1,9 +1,11 @@
 
 const { FloorBox, Sequelize } = require("../../models");
+const { findOne: findOneCartFloorItem } = require("../cart-floor-items-dal");
+const { getUserActiveCart } = require("../me-dal");
 
 module.exports = {
     getFloorBoxesInfo: async ({
-        mil_type, FloorId, FloorTileSizeId, limit, exclude_ids
+        mil_type, FloorId, FloorTileSizeId, limit, exclude_ids, cart, UserId
     }) => {
         let where = { 
             mil_type, FloorId, FloorTileSizeId,
@@ -12,12 +14,32 @@ module.exports = {
         if (exclude_ids) where.id = {
             [Sequelize.Op.notIn]: exclude_ids
         }
+        let cart_floor_item;
+        if (cart || UserId){
+            console.log("HERERERR")
+            if (!cart && UserId){
+                cart = await getUserActiveCart({ UserId })
+            }
+            cart_floor_item = await findOneCartFloorItem({
+                CartId: cart.id, mil_type, FloorId, FloorTileSizeId, UserId
+            })
+        }
+        if (cart_floor_item && limit) limit += cart_floor_item.boxes_amount 
         let floor_boxes = await FloorBox.findAll({ where, limit })
-        let square_feet_available = floor_boxes.length * 23.4
+        let floor_boxes_amount = floor_boxes.length;
+        console.log({cart,UserId, floor_boxes_amount})
+        
+        if (cart_floor_item){
+            console.log("cart_floor_item FOUND")
+            console.log({floor_boxes_amount,cart_floor_item_boxes_amount: cart_floor_item.boxes_amount})
+            floor_boxes_amount -= cart_floor_item.boxes_amount 
+        }
+        let square_feet_available = floor_boxes_amount * 23.4
         let data = {
-            pallets: Math.floor(floor_boxes / 50),
-            boxes: floor_boxes.length,
-            square_feet_available
+            pallets: Math.floor(floor_boxes_amount / 50),
+            boxes: floor_boxes_amount,
+            square_feet_available,
+            price: mil_type == 12 ? 2.47 : 2.85
         } 
         // if (limit) data.floor_boxes = floor_boxes;
         return data

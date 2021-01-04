@@ -5,7 +5,7 @@ const { getFloorWithFloorTileSizes, updateFloorTileSizes } = require("../floor-f
 const { getFloorBoxesInfo } = require("../floor-boxes-dal");
 
 module.exports = {
-    findOne: async ({floor_id, ...stock_info_args}) => {
+    findOne: async ({floor_id, UserId, ...stock_info_args}) => {
         let floor = await Floor.findByPkOr404(floor_id,{ 
             include: [ FloorType, FloorCategory, Brand, Color ] 
         })
@@ -14,7 +14,7 @@ module.exports = {
         floor = JSON.parse(JSON.stringify(floor))
         if (Object.keys(stock_info_args).length == 3) {
             floor.stock_info = await getFloorBoxesInfo({ 
-                FloorId: floor.id,
+                FloorId: floor.id, UserId,
                 ...stock_info_args
             }) 
         }
@@ -40,12 +40,12 @@ module.exports = {
         return await Promise.all(ops);
     },
     createFloor: async ({ 
-        name, description, thumbnail_url, price,
+        name, description, thumbnail_url,
         FloorCategoryId, FloorId, ColorId, FloorTypeId,
         BrandId, UserId, floor_tile_sizes
      }) => {
          let floor = await Floor.create({ 
-            name, description, thumbnail_url, price,
+            name, description, thumbnail_url,
             FloorCategoryId, 
             FloorId, ColorId, BrandId, UserId, FloorTypeId
          })

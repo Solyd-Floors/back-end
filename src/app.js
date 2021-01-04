@@ -38,6 +38,7 @@ const team_members_api = require("./libs/team-members-api")
 const videos_api = require("./libs/videos-api")
 const colors_api = require("./libs/colors-api")
 const carts_api = require("./libs/carts-api")
+const orders_api = require("./libs/orders-api")
 
 docs_collector.generateSwaggerDocument()
 const api_docs = require("./libs/api-docs");
@@ -71,6 +72,7 @@ app.use(PATHNAME_PREFIX, countries_api);
 app.use(PATHNAME_PREFIX, videos_api);
 app.use(PATHNAME_PREFIX, colors_api);
 app.use(PATHNAME_PREFIX, carts_api);
+app.use(PATHNAME_PREFIX, orders_api);
 
 app.get('/', (req, res) => res.json({ versions: [ "v1"] }))
 app.get("*", (req,res) => res.status(404).json({

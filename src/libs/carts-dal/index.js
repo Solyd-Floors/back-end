@@ -1,16 +1,25 @@
 
 const { Cart } = require("../../models");
 const { CartFloorBox, FloorBox, FloorTileSize, CartFloorItem, Floor } = require("../../models");
+const getPrice = require("../../utils/getPrice");
 
 module.exports = {
-    findOne: async ({ UserId, status }) => await Cart.findOne({
-        where: { UserId, status }, include: [ 
-            {
-                model: CartFloorItem,
-                include: [ Floor, FloorTileSize ]
-            }
-         ]
-    }),
+    findOne: async ({ UserId, status, not_json }) => {
+        let cart = await Cart.findOne({
+            where: { UserId, status }, include: [ 
+                {
+                    model: CartFloorItem,
+                    include: [ Floor, FloorTileSize ]
+                }
+             ]
+        })
+        if (not_json) return cart
+        cart = JSON.parse(JSON.stringify(cart)) 
+        if (cart && cart.CartFloorItems) cart.CartFloorItems.map(x => 
+            x.total_price = getPrice(x.mil_type) * (x.boxes_amount * 23.4)
+        )
+        return cart;
+    },
     createCart: async ({ 
         UserId
      }) => {

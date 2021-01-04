@@ -2,6 +2,7 @@
 const { FloorBox } = require("../../models");
 const { ErrorHandler } = require("../../utils/error");
 const { findOne: findOneFloor } = require("../floors-dal")
+const uuid = require("uuid")
 
 let checkFloorTileSizeId = async ({
     FloorTileSizeId, FloorId
@@ -18,8 +19,9 @@ module.exports = {
     findOne: async pk => await FloorBox.findByPkOr404(pk),
     findAll: async () => await FloorBox.findAll(),
     createFloorBox: async ({ 
-        SKU, mil_type, FloorTileSizeId, FloorId
+        mil_type, FloorTileSizeId, FloorId
      }) => {
+        let SKU = `AUTO-${uuid.v1()}`;
         await checkFloorTileSizeId({FloorId, FloorTileSizeId})
         return await FloorBox.create({ 
             SKU, mil_type, FloorTileSizeId, FloorId

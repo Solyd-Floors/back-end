@@ -15,3 +15,14 @@ paths:
       tags:
         - Me
       summary: Insert floor boxes into my cart
+  "/me/cart/remove/floor_boxes":
+    post:
+      tags:
+        - Me
+      summary: Remove floor boxes from my cart
+  "/me/cart/remove/item":
+    post:
+      tags:
+        - Me
+      summary: Remove item from cart
+    

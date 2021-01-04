@@ -27,7 +27,7 @@ module.exports = {
     deleteCartFloorItem: async ({
         CartId, CartFloorItemId
     }) => {
-        let cart_floor_item = await CartFloorItem.findOne({ CartId, CartFloorItemId });
+        let cart_floor_item = await CartFloorItem.findOne({ where: { CartId, id: CartFloorItemId } });
         await cart_floor_item.destroy();
         return cart_floor_item;
     },
