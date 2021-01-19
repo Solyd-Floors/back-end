@@ -8,6 +8,7 @@ module.exports = {
     }) => {
         let cart = await findOneCart({ UserId, status: "ACTIVE", not_json})
         if (!cart) cart = await createCart({UserId})
+        console.log(55)
         return cart;
     }    
 }

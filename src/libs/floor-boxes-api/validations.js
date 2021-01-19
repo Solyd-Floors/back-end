@@ -25,6 +25,7 @@ module.exports = {
     post_floor_boxes: yup.object().shape({
         requestBody: yup.object().shape({
             mil_type: mil_type_schema.required(),
+            price: yup.number().positive().required(),
             FloorId: id.required(),
             FloorTileSizeId: id.required(),
         })
@@ -37,6 +38,7 @@ module.exports = {
     patch_floor_boxes: yup.object().shape({
         requestBody: yup.object().shape({
             mil_type: mil_type_schema,
+            price: yup.number().positive(),
             FloorId: id,
             FloorTileSizeId: id,
         }),

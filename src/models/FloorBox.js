@@ -18,11 +18,8 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: "ACTIVE"
         },
         price: {
-            type: DataTypes.VIRTUAL,
-            set: function(val) {
-                let is_12_mm = this.get("mil_type") == 12
-                return is_12_mm ? 2.37 : 2.85
-            }
+            type: DataTypes.INTEGER,
+            allowNull: false
         }
     });
 

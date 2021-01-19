@@ -99,7 +99,10 @@ app.post("/floors", [
         ) req.files["thumbnail"] = req.body["thumbnail_url"] = await uploadFile(req.files["thumbnail"][0]);
     }
     req.body.floor_tile_sizes = req.body.floor_tile_sizes.map(x => Number(x))
-    let floor = await createFloor(req.body)
+    let floor = await createFloor({
+        ...req.body,
+        UserId: req.user.id
+    })
     return res.json({
         code: 201,
         message: "success",

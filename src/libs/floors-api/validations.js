@@ -35,7 +35,6 @@ module.exports = {
             FloorCategoryId: positive_integer_as_string.required(),
             FloorTypeId: positive_integer_as_string.required(),
             BrandId: positive_integer_as_string.required(),
-            UserId: positive_integer_as_string.required(),
             ColorId: positive_integer_as_string.required(),
             floor_tile_sizes: yup.array().of(positive_integer_as_string.required()).required(),
         })
@@ -52,7 +51,6 @@ module.exports = {
             FloorCategoryId: positive_integer_as_string,
             FloorTypeId: positive_integer_as_string,
             BrandId: positive_integer_as_string,
-            UserId: positive_integer_as_string,
             ColorId: positive_integer_as_string,
             floor_tile_sizes: yup.array().of(positive_integer_as_string.required()),
         }),

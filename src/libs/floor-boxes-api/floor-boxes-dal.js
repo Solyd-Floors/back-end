@@ -19,12 +19,12 @@ module.exports = {
     findOne: async pk => await FloorBox.findByPkOr404(pk),
     findAll: async () => await FloorBox.findAll(),
     createFloorBox: async ({ 
-        mil_type, FloorTileSizeId, FloorId
+        mil_type, price, FloorTileSizeId, FloorId
      }) => {
         let SKU = `AUTO-${uuid.v1()}`;
         await checkFloorTileSizeId({FloorId, FloorTileSizeId})
         return await FloorBox.create({ 
-            SKU, mil_type, FloorTileSizeId, FloorId
+            SKU, mil_type, price, FloorTileSizeId, FloorId
         })
     },
      updateFloorBox: async ({pk,data}) => {

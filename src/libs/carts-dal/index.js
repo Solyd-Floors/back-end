@@ -2,6 +2,7 @@
 const { Cart } = require("../../models");
 const { CartFloorBox, FloorBox, FloorTileSize, CartFloorItem, Floor } = require("../../models");
 const getPrice = require("../../utils/getPrice");
+const { getCartFloorItemWithMoreInfo } = require("./utils");
 
 module.exports = {
     findOne: async ({ UserId, status, not_json }) => {
@@ -15,9 +16,13 @@ module.exports = {
         })
         if (not_json) return cart
         cart = JSON.parse(JSON.stringify(cart)) 
-        if (cart && cart.CartFloorItems) cart.CartFloorItems.map(x => 
-            x.total_price = getPrice(x.mil_type) * (x.boxes_amount * 23.4)
-        )
+        if (cart && cart.CartFloorItems) {
+            for (let i in cart.CartFloorItems){
+                cart.CartFloorItems[i] = await getCartFloorItemWithMoreInfo(cart.CartFloorItems[i])
+            }
+        }
+        // await Promise.all(cart.CartFloorItems)
+        // console.log(cart.CartFloorItems,"cart.CartFloorItems")
         return cart;
     },
     createCart: async ({ 
