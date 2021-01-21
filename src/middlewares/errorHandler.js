@@ -30,7 +30,6 @@ module.exports = (err, req, res, next) => {
             return handleError(err_, res);
         }
         throw new Error("Error Handler does not support this type of database error")
-        
     } else {
         if (process.env.DEVELOPMENT) throw err;
         else {

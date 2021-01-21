@@ -1,5 +1,5 @@
 
-const { FloorBox } = require("../../models")
+const { Sequelize, FloorBox } = require("../../models")
 const { v4: uuidv4 } = require('uuid'); 
 const { ErrorHandler } = require("../../utils/error");
 
@@ -40,6 +40,20 @@ let getInventory = async () => {
     return inventory_items
 }
 
+let findCheaperFloorBox = async ({
+    mil_type,
+    price,
+    FloorId,
+    FloorTileSizeId
+}) => {
+    let floor_box = await FloorBox.findOne({
+        where: { mil_type, FloorId, FloorTileSizeId, price: { [Sequelize.Op.not]: price } }
+    })
+    if (!floor_box) return;
+    console.log({floor_box})
+    return floor_box;
+}
+
 let addFloorBoxes = async ({
     mil_type,
     price,
@@ -48,6 +62,10 @@ let addFloorBoxes = async ({
     amount,
     return_undefined
 }) => {
+    let cheaper = await findCheaperFloorBox({ mil_type, FloorId, FloorTileSizeId, price })
+    if (cheaper !== undefined) throw new ErrorHandler(403, "PriceDifferentNotAllowed", [ 
+        `There exists floor boxes of the same type with the price ${cheaper.price}, to add others price must be the same.`
+    ])
     let FloorBoxData = {
         mil_type,
         price,
@@ -91,11 +109,12 @@ module.exports = {
     getInventory,
     addInventory: addFloorBoxes,
     updateInventory: async ({ before, after }) => {
-        let { amount: before_amount, ...before_rest } = before
+        let { amount: before_amount, price: before_price, ...before_rest } = before
         let { amount: after_amount, ...after_rest } = after
         let current_floor_boxes = await FloorBox.count({ where: before_rest })
+        console.log({current_floor_boxes, before_rest})
         if (current_floor_boxes !== before_amount) throw new ErrorHandler(403,"Invalid amount", [
-            `This is probably a persisent bug, please report to the developer. $${current_floor_boxes} !== ${before_amount}`
+            `This is probably a persisent bug, please report to the developer. ${current_floor_boxes} !== ${before_amount}`
         ]) 
         let add;
         let remove;

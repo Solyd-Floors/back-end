@@ -1,17 +1,23 @@
 const { ErrorHandler } = require("../../utils/error")
 const bcrypt = require("bcrypt")
 
-let { User } = require("../../models")
+let { User, Employee } = require("../../models")
 
 const INVALID_CREDENTIALS_ERROR = new ErrorHandler(400, "Invalid credentials", [
     "Email or password is incorrect. Please try again."
 ])
 
-module.exports = async ({ email, password }) => {
-    let user = await User.scope('withPassword').findOne({ where: { email } })
-    if (!user) throw INVALID_CREDENTIALS_ERROR
-    const match = await bcrypt.compare(password, user.password);
-    user.password = undefined
-    if (match) return user;
+let validateCredentials = model =>  async ({ email, password }) => {
+    let obj = await model.scope('withPassword').findOne({ where: { email } })
+    if (!obj) throw INVALID_CREDENTIALS_ERROR
+    const match = await bcrypt.compare(password, obj.password);
+    obj.password = undefined
+    if (match) return obj;
     else throw INVALID_CREDENTIALS_ERROR
+}
+
+
+module.exports = {
+    validateEmployeeCrendetials: validateCredentials(Employee),
+    validateUserCrendetials: validateCredentials(User),
 }

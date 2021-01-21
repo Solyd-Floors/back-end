@@ -44,6 +44,8 @@ app.get("/floor_boxes/:floor_box_id", async (req,res) => {
 app.get("/floor_boxes", [
     validateRequest(get_floor_boxes)
 ], async (req,res) => {
+    res.header('Content-Range', "FloorBox */10");
+
     let floor_boxes = await findAll(req.query);
     return res.json({
         code: 200,

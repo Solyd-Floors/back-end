@@ -1,5 +1,5 @@
 
-const { FloorBox, Sequelize } = require("../../models");
+const { FloorBox, Floor, Sequelize } = require("../../models");
 const { findOne: findOneCartFloorItem } = require("../cart-floor-items-dal");
 const { getUserActiveCart } = require("../me-dal");
 
@@ -25,8 +25,8 @@ module.exports = {
             })
         }
         if (cart_floor_item && limit) limit += cart_floor_item.boxes_amount 
-        let floor_boxes = await FloorBox.findAll({ where, limit })
-        let floor_boxes_amount = floor_boxes.length;
+        let floor_boxes_amount = await FloorBox.count({ where, limit })
+        let floor_boxes2 = await FloorBox.findAll({ where, limit: 1 })
         console.log({cart,UserId, floor_boxes_amount})
         
         if (cart_floor_item){
@@ -39,7 +39,7 @@ module.exports = {
             pallets: Math.floor(floor_boxes_amount / 50),
             boxes: floor_boxes_amount,
             square_feet_available,
-            price: mil_type == 12 ? 2.47 : 2.85
+            price: floor_boxes2.length ? floor_boxes2[0].price : 0
         } 
         // if (limit) data.floor_boxes = floor_boxes;
         return data

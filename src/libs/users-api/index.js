@@ -74,7 +74,7 @@ app.post("/users", validateRequest(post_users), async (req, res) => {
     return res.json({
         message: "success",
         code: 201,
-        data: { user, token: createToken(user.id) }
+        data: { user, token: createToken("userId",user.id) }
     })
 })
 

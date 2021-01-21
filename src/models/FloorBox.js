@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: "ACTIVE"
         },
         price: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.FLOAT,
             allowNull: false
         }
     });

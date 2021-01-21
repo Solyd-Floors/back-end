@@ -21,6 +21,12 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         },
+        __typename: {
+            type: DataTypes.VIRTUAL,
+            get: function(val){
+                return "Floor"
+            }
+        }
     }, options);
 
     Floor.associate = models => {
