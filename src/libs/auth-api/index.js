@@ -9,10 +9,12 @@ const { ErrorHandler } = require("../../utils/error")
 
 const createToken = require("../utils/createToken")
 const { findUserByPk } = require("../users-dal");
-const { post_auth } = require("./validations");
+const { post_auth, post_employee_auth } = require("./validations");
 
-const validateCredentials = require("./validateCredentials");
+const { validateUserCredentials, validateEmployeeCredentials } = require("./validateCredentials");
 const { jwtNotRequired, passUserOrCreateGuestFromJWT, passEmployeeFromJWT } = require("../../middlewares");
+const { findByUserPk: findBusinessByUserPk } = require("../businesses-dal");
+const passBusinessFromJWT = require("../../middlewares/passBusinessFromJWT");
 
 const getUserResponse = user => ({
     status: "success",
@@ -34,6 +36,16 @@ const getEmployeeResponse = employee => ({
     }
 })
 
+const getBusinessResponse = business => ({
+    status: "success",
+    code: 200,
+    message: "Authorized",
+    data: {
+        token: createToken("businessId",business.id),
+        business
+    }
+})
+
 app.use(allowCrossDomain)
 
 app.get('/auth', [jwtNotRequired, passUserOrCreateGuestFromJWT], async (req, res) => {
@@ -41,7 +53,7 @@ app.get('/auth', [jwtNotRequired, passUserOrCreateGuestFromJWT], async (req, res
 });
 
 app.post('/auth', validateRequest(post_auth), async (req, res) => {
-    let user = await validateCredentials(req.body)
+    let user = await validateUserCredentials(req.body)
     return res.json(getUserResponse(user))
 });
 
@@ -50,15 +62,15 @@ const INVALID_CREDENTIALS_ERROR = new ErrorHandler(400, "Invalid credentials", [
     "Email or password is incorrect. Please try again."
 ])
 
-app.get('/businesses/auth', [jwtNotRequired, passUserOrCreateGuestFromJWT], async (req, res) => {
-    if (!req.user.BusinessId) throw new ErrorHandler(401,"Unauthorized")
-    return res.json(getUserResponse(req.user))
+app.get('/businesses/auth', [jwtRequired, passBusinessFromJWT], async (req, res) => {
+    return res.json(getBusinessResponse(req.business))
 });
 
 app.post("/businesses/auth", validateRequest(post_auth), async (req,res) => {
     let user = await validateUserCredentials(req.body);
-    if (!user.BusinessId) throw INVALID_CREDENTIALS_ERROR
-    return res.json(getUserResponse(user))
+    let business = await findBusinessByUserPk(user.id);
+    if (!business) throw INVALID_CREDENTIALS_ERROR
+    return res.json(getBusinessResponse(business))
 })
 
 app.get('/employee/auth', [jwtRequired, passEmployeeFromJWT], async (req, res) => {
@@ -66,7 +78,7 @@ app.get('/employee/auth', [jwtRequired, passEmployeeFromJWT], async (req, res) =
     return res.json(getEmployeeResponse(employee))
 });
 
-app.post("/employee/auth", validateRequest(post_auth), async (req,res) => {
+app.post("/employee/auth", validateRequest(post_employee_auth), async (req,res) => {
     let employee = await validateEmployeeCredentials(req.body);
     if (!employee) throw INVALID_CREDENTIALS_ERROR
     return res.json(getEmployeeResponse(user))

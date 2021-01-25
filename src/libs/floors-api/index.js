@@ -29,7 +29,6 @@ app.get("/floors/:floor_id",[
 ], async (req,res) => {
     let floor = await findOne({ 
         floor_id: req.params.floor_id,
-        UserId: req.user ? req.user.id : undefined, 
         ...req.query 
     })
     return res.json({

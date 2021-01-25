@@ -24,6 +24,7 @@ global.docs_collector = docs_collector;
 const { errorHandler, allowCrossDomain } = require("./middlewares")
 
 const users_api = require("./libs/users-api")
+const my_business_api = require("./libs/my-business-api")
 const businesses_api = require("./libs/businesses-api")
 const employees_api = require("./libs/employees-api")
 const industries_api = require("./libs/industries-api")
@@ -97,6 +98,7 @@ app.use(V1_PATHNAME_PREFIX, colors_api);
 app.use(V1_PATHNAME_PREFIX, carts_api);
 app.use(V1_PATHNAME_PREFIX, orders_api);
 app.use(V1_PATHNAME_PREFIX, inventory_api);
+app.use(V1_PATHNAME_PREFIX, my_business_api);
 
 // const V2_PATHNAME_PREFIX = "/api/v2";
 

@@ -12,10 +12,35 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false,
         },
-        full_name: {
+        first_name: {
             type: DataTypes.STRING,
             allowNull: false
-        }
+        },
+        last_name: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        address: {
+            type: DataTypes.STRING,
+        },
+        address2: {
+            type: DataTypes.STRING,
+        },
+        phone_number: {
+            type: DataTypes.STRING,
+        },
+        city: {
+            type: DataTypes.STRING,
+        },
+        postcode: {
+            type: DataTypes.STRING,
+        },
+        state: {
+            type: DataTypes.STRING,
+        },
+        country: {
+            type: DataTypes.STRING,
+        },
     });
 
     Employee.associate = models => {

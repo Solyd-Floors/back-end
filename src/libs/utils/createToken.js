@@ -6,6 +6,6 @@ module.exports = (key, value, extra = {}, expiresIn, explicit_jwt_secret) => {
     const token = jwt.sign({
         [key]: value,
         ...extra
-    }, explicit_jwt_secret + `_${key}` || process.env.JWT_SECRET, options);
+    }, explicit_jwt_secret || process.env.JWT_SECRET, options);
     return token
 }

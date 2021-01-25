@@ -3,7 +3,9 @@
 const { ErrorHandler } = require("../utils/error");
 
 module.exports = (sequelize, DataTypes) => {
-    let options = { }
+    let options = { 
+       
+    }
     let Business = sequelize.define('Business', {
         name: {
             type: DataTypes.STRING,

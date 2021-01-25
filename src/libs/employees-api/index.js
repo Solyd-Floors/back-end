@@ -6,9 +6,10 @@ const app = module.exports = express();
 const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
 
 const { post_employees, patch_employees, delete_employees } = require("./validations");
-const { findAll, createEmployee, updateEmployee, deleteEmployee } = require("./employees-dal");
+const { findAll } = require("./employees-dal");
 const { ErrorHandler } = require("../../utils/error");
 const createToken = require("../utils/createToken");
+const { deleteEmployee, createEmployee, updateEmployee } = require("../employees-dal");
 
 app.use(allowCrossDomain)
 
