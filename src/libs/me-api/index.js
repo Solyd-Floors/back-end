@@ -21,7 +21,9 @@ const {
     removeBoxesFromCart,
     addBoxesToCart2, 
     removeItemFromCart,
-    checkoutMyCart
+    checkoutMyCart,
+    findOrder,
+    cancelOrder
 } = require("./me-dal");
 const {
     getUserActiveCart, 
@@ -127,6 +129,33 @@ app.post("/me/cart/checkout", [
     })
     return res.json({
         code: 201,
+        message: "success",
+        data: { order }
+    })
+})
+
+app.get("/me/orders/:order_id", [
+    jwtRequired, multipleAuth([passBusinessFromJWT, passUserOrGuestFromJWT]),
+], async (req,res) => {
+    let UserId = req.business ? req.business.UserId : req.user.id
+    let order = await findOrder({
+        UserId, OrderId: req.params.order_id
+    })
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { order }
+    })
+})
+
+app.post("/me/orders/:order_id/cancel", [
+    jwtRequired, multipleAuth([passBusinessFromJWT, passUserOrGuestFromJWT]),
+], async (req,res) => {
+    console.log(555)
+    let UserId = req.business ? req.business.UserId : req.user.id
+    let order = await cancelOrder({ UserId, OrderId: req.params.order_id })
+    return res.json({
+        code: 200,
         message: "success",
         data: { order }
     })

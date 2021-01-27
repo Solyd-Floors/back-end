@@ -2,11 +2,20 @@
 const { getFloorBoxesInfo } = require("../floor-boxes-dal");
 const { ErrorHandler } = require("../../utils/error");
 const { findAll: findAllCartFloorBoxes } = require("../cart-floor-boxes-dal");
-const { FloorBox, Invoice, Order, Cart } = require("../../models");
+const { 
+    Floor, 
+    FloorTileSize, 
+    FloorBox, 
+    Invoice, 
+    Order, 
+    Cart, 
+    CartFloorItem, 
+} = require("../../models");
 const { findOne: findOneCartFloorItem, findAllOnCart, removeBoxesFromCartFloorItem, deleteCartFloorItem, findAllForCartWhere } = require("../cart-floor-items-dal");
 const { createCartFloorItem, findAllForCart: findAllForCartCartFloorItems } = require("../cart-floor-items-dal");
 const { getUserActiveCart } = require("../me-dal");
 const uuid = require("uuid");
+const { findOne: findOneCart } = require("../carts-dal");
 
 const getMyCartFloorItemsInfo = async ({
     UserId
@@ -137,6 +146,33 @@ module.exports = {
             InvoiceId: invoice.id
         })
         await Cart.update({ status: "COMPLETED" }, { where: { id: CartId }})
+        return order;
+    },
+    findOrder: async ({
+        UserId, OrderId
+    }) => {
+        let order = await Order.findOne({
+            where: {
+                id: OrderId, UserId
+            }
+        })
+        order = JSON.parse(JSON.stringify(order));
+        order.Cart = await findOneCart({ id: order.CartId })
+        return JSON.parse(JSON.stringify(order));
+    },
+    cancelOrder: async ({
+        UserId, OrderId
+    }) => {
+        let order = await Order.findOne({
+            where: {
+                id: OrderId, UserId
+            }
+        })
+        if (!order) throw new ErrorHandler(404,"Order not found",[
+            "Order not found"
+        ])
+        order.status = "CANCELED";
+        await order.save();
         return order;
     }
 }

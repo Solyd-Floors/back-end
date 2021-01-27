@@ -6,9 +6,10 @@ const getPrice = require("../../utils/getPrice");
 const { getCartFloorItemWithMoreInfo } = require("./utils");
 
 module.exports = {
-    findOne: async ({ UserId, EmployeeId, status, not_json }) => {
+    findOne: async ({ id, UserId, EmployeeId, status, not_json }) => {
         let where = {}
         if (UserId) where.UserId = UserId
+        if (id) where.id = id
         if (EmployeeId) where.EmployeeId = EmployeeId
         if (status) where.status = status
         console.log({where})
