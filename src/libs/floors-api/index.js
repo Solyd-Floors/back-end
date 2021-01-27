@@ -6,7 +6,9 @@ const app = module.exports = express();
 const { 
     allowCrossDomain, validateRequest, jwtRequired, 
     passUserFromJWT, adminRequired, query_param_string_to_integer,
-    body_param_string_to_integer, passUserFromJWT_optional, jwtNotRequired
+    body_param_string_to_integer, passUserFromJWT_optional, jwtNotRequired,
+    multipleAuthOrNone, multipleAuth,
+    passUserOrCreateGuestFromJWT, passBusinessFromJWT
 } = require("../../middlewares");
 
 const { get_floors, post_floors, delete_floors, patch_floors, get_floors_floor_id } = require("./validations");
@@ -16,7 +18,6 @@ const { ErrorHandler } = require("../../utils/error");
 const multer = require('multer');
 const upload = multer();
 const uploadFile = require("../aws/uploadFile");
-const passUserOrGuestFromJWT = require("../../middlewares/passUserOrGuestFromJWT");
 const uploadMiddleware = upload.fields([
     { name: 'thumbnail', maxCount: 1 },
 ])
@@ -25,9 +26,10 @@ app.use(allowCrossDomain)
 
 app.get("/floors/:floor_id",[
     validateRequest(get_floors_floor_id),
-    jwtRequired, passUserOrGuestFromJWT
+    jwtNotRequired, multipleAuth([ passBusinessFromJWT, passUserOrCreateGuestFromJWT ])
 ], async (req,res) => {
     let floor = await findOne({ 
+        UserId: req.business ? req.business.UserId : req.user.id,
         floor_id: req.params.floor_id,
         ...req.query 
     })

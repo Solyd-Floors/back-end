@@ -3,6 +3,13 @@
 const { ErrorHandler } = require("../utils/error");
 
 module.exports = (sequelize, DataTypes) => {
+    let options = {
+        defaultScope: {
+            where: { 
+                CartFloorItemId: null
+            }
+        }
+    }
     let FloorBox = sequelize.define('FloorBox', {
         SKU: {
             type: DataTypes.STRING,
@@ -18,18 +25,15 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: "ACTIVE"
         },
         price: {
-            type: DataTypes.FLOAT,
+            type: DataTypes.DECIMAL(10,2),
             allowNull: false
         }
-    });
+    }, options);
 
     FloorBox.associate = models => {
         FloorBox.belongsTo(models.Floor, { foreignKey: { allowNull: false } })
         FloorBox.belongsTo(models.FloorTileSize, { foreignKey: { allowNull: false } })
-        FloorBox.belongsToMany(models.Cart, {
-            through: models.CartFloorBox,
-            foreignKey: "FloorBoxId"
-        })
+        FloorBox.belongsTo(models.CartFloorItem);
     }
     
     return FloorBox;

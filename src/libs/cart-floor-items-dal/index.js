@@ -14,6 +14,9 @@ module.exports = {
     findAllForCart: async ({ CartId }) => await CartFloorItem.findAll({
         where: { CartId }
     }),
+    findAllForCartWhere: async (CartId, { where }) => await CartFloorItem.findAll({
+        where: { CartId, ...where }
+    }),
     findAll: async ({
         CartId, mil_type, boxes_amount, FloorTileSizeId, FloorId 
     }) => await CartFloorItem.findAll({ 

@@ -41,4 +41,14 @@ module.exports = {
             phone_number: yup.string(),
         })
     }),
+    post_my_business_ship_to_addresses: yup.object().shape({
+        requestBody: yup.object().shape({
+            address: yup.string().required()
+        })
+    }),
+    delete_my_business_ship_to_addresses: yup.object().shape({
+        params: yup.object().shape({
+            ship_to_address_id: param_id.required()
+        })
+    }),
 }

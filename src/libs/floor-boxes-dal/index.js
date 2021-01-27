@@ -23,6 +23,7 @@ module.exports = {
             cart_floor_item = await findOneCartFloorItem({
                 CartId: cart.id, mil_type, FloorId, FloorTileSizeId, UserId
             })
+            console.log({cart_floor_item})
         }
         if (cart_floor_item && limit) limit += cart_floor_item.boxes_amount 
         let floor_boxes_amount = await FloorBox.count({ where, limit })

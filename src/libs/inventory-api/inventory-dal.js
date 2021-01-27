@@ -59,9 +59,8 @@ let addFloorBoxes = async ({
     price,
     FloorId,
     FloorTileSizeId,
-    amount,
-    return_undefined
-}) => {
+    amount
+}, return_undefined) => {
     let cheaper = await findCheaperFloorBox({ mil_type, FloorId, FloorTileSizeId, price })
     if (cheaper !== undefined) throw new ErrorHandler(403, "PriceDifferentNotAllowed", [ 
         `There exists floor boxes of the same type with the price ${cheaper.price}, to add others price must be the same.`
@@ -89,9 +88,16 @@ let deleteFloorBoxes = async ({
     price,
     FloorId,
     FloorTileSizeId,
-    amount,
-    return_undefined
-}) => {
+    amount
+}, return_undefined) => {
+    console.log({
+        mil_type,
+        price,
+        FloorId,
+        FloorTileSizeId,
+        amount,
+        return_undefined
+    },90999)
     await FloorBox.destroy({ 
         where: {
             mil_type,
@@ -120,11 +126,12 @@ module.exports = {
         let remove;
         if (before_amount > after_amount) remove = before_amount - after_amount
         if (before_amount < after_amount) add = after_amount - before_amount
-        if (add) await addFloorBoxes(after_rest, true)
-        if (remove) await deleteFloorBoxes(after_rest, true)
         await FloorBox.update(after_rest, { 
             where: before_rest
         })
+        console.log({add, remove, after_rest })
+        if (add) await addFloorBoxes({ ...after_rest, amount: add}, true)
+        if (remove) await deleteFloorBoxes({ ...after_rest, amount: remove}, true)
         return await getInventory()
     },
 }

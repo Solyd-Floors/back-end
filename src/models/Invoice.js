@@ -11,7 +11,6 @@ module.exports = (sequelize, DataTypes) => {
         },
         last_four_digits: {
             type: DataTypes.STRING,
-            unique: true,
             allowNull: false
         },
         price: {
@@ -33,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
     }, options);
 
     Invoice.associate = models => {
-        Invoice.hasMany(models.User)
+        Invoice.belongsTo(models.User)
     }
     
     return Invoice;

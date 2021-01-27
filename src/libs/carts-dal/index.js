@@ -1,13 +1,19 @@
 
 const { Cart } = require("../../models");
 const { CartFloorBox, FloorBox, FloorTileSize, CartFloorItem, Floor } = require("../../models");
+const { ErrorHandler } = require("../../utils/error");
 const getPrice = require("../../utils/getPrice");
 const { getCartFloorItemWithMoreInfo } = require("./utils");
 
 module.exports = {
-    findOne: async ({ UserId, status, not_json }) => {
+    findOne: async ({ UserId, EmployeeId, status, not_json }) => {
+        let where = {}
+        if (UserId) where.UserId = UserId
+        if (EmployeeId) where.EmployeeId = EmployeeId
+        if (status) where.status = status
+        console.log({where})
         let cart = await Cart.findOne({
-            where: { UserId, status }, include: [ 
+            where, include: [ 
                 {
                     model: CartFloorItem,
                     include: [ Floor, FloorTileSize ]
@@ -26,13 +32,16 @@ module.exports = {
         return cart;
     },
     createCart: async ({ 
-        UserId
+        UserId, EmployeeId
      }) => {
+        let where = { status: "ACTIVE" }
+        if (UserId) where.UserId = UserId
+        if (EmployeeId) where.EmployeeId = EmployeeId
         if (
-            await Cart.findOne({ where: { UserId, status: "ACTIVE" }})
+            await Cart.findOne({ where })
         ) throw new ErrorHandler(403, "Discard active cart to create a new one.")
         return await Cart.create({ 
-            UserId
+            UserId, EmployeeId
         })
     },
     getCartWithAllItems: async ({

@@ -14,6 +14,8 @@ module.exports = {
         let business = await Business.findOne({ 
             where: { UserId }
         })
+        console.log({business, UserId})
+        if (!business) return;
         return await insertRelationsToBusiness(business)
     },
     findByPk: async pk => {

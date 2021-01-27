@@ -69,6 +69,7 @@ app.get('/businesses/auth', [jwtRequired, passBusinessFromJWT], async (req, res)
 app.post("/businesses/auth", validateRequest(post_auth), async (req,res) => {
     let user = await validateUserCredentials(req.body);
     let business = await findBusinessByUserPk(user.id);
+    console.log({user,business})
     if (!business) throw INVALID_CREDENTIALS_ERROR
     return res.json(getBusinessResponse(business))
 })

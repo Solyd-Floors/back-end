@@ -3,17 +3,32 @@
 const { ErrorHandler } = require("../utils/error");
 
 module.exports = (sequelize, DataTypes) => {
-    let options = { }
+    let options = { 
+        defaultScope: {
+            where: { 
+                deleted: false
+            }
+        },
+        scopes: {
+            all: {
+                where: { }
+            }
+        }
+    }
     let ShipToAddress = sequelize.define('ShipToAddress', {
-        name: {
+        address: {
             type: DataTypes.STRING,
             unique: true
+        },
+        deleted: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+            allowNull: false
         }
     }, options);
 
     ShipToAddress.associate = models => {
-        ShipToAddress.belongsTo(models.Order)
-        ShipToAddress.belongsTo(models.CartFloorItem)
+        ShipToAddress.belongsTo(models.Business);
     }
     
     return ShipToAddress;
