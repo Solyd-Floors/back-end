@@ -82,5 +82,5 @@ app.get('/employee/auth', [jwtRequired, passEmployeeFromJWT], async (req, res) =
 app.post("/employee/auth", validateRequest(post_employee_auth), async (req,res) => {
     let employee = await validateEmployeeCredentials(req.body);
     if (!employee) throw INVALID_CREDENTIALS_ERROR
-    return res.json(getEmployeeResponse(user))
+    return res.json(getEmployeeResponse(employee))
 })

@@ -1,7 +1,17 @@
 
 const yup = require("yup");
-const { Order } = require("../../models");
+// const { Order } = require("../../models");
 const { param_id, id } = require("../utils/validations");
+
+let Order = function(){}
+Order.get_status_list = () => [
+    "WAITING_CONFIRMATION",
+    "CONFIRMED",
+    "SHIPPING",
+    "DELIVERED",
+    "CANCELED",
+    "REFUSED"
+]
 
 module.exports = {
     post_orders: yup.object().shape({

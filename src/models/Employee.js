@@ -3,6 +3,16 @@
 const { ErrorHandler } = require("../utils/error");
 
 module.exports = (sequelize, DataTypes) => {
+    let options = {
+        defaultScope: {
+            attributes: { exclude: [ "password" ] },
+        },
+        scopes: {
+            withPassword: {
+                attributes: {},
+            },
+        }
+    }
     let Employee = sequelize.define('Employee', {
         email: {
             type: DataTypes.STRING,
@@ -41,7 +51,7 @@ module.exports = (sequelize, DataTypes) => {
         country: {
             type: DataTypes.STRING,
         },
-    });
+    }, options);
 
     Employee.associate = models => {
         Employee.belongsTo(models.Business, { foreignKey: { allowNull: false } });
