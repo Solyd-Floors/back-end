@@ -100,22 +100,10 @@ app.use(V1_PATHNAME_PREFIX, orders_api);
 app.use(V1_PATHNAME_PREFIX, inventory_api);
 app.use(V1_PATHNAME_PREFIX, my_business_api);
 
-// const V2_PATHNAME_PREFIX = "/api/v2";
+const V2_PATHNAME_PREFIX = "/api/v2";
+const get_model_pagination = require("./libs/v2-get-model-pagination")
+app.use(V2_PATHNAME_PREFIX, get_model_pagination)
 
-// app.use(mung.jsonAsync(
-//     async function transform(body,req,res) {
-//         let data = body.data;
-//         if (!data) return body
-//         if (Object.keys(data).length !== 1) return body;
-//         let key = Object.keys(data)[0]
-//         let list = data[key]
-//         if (typeof(list) !== "object" || list.length === undefined) return body;
-//         let transformed = { ...body, data: list }
-//         return [ list[0] ];
-//     }
-// ))
-
-// app.use(V2_PATHNAME_PREFIX, floor_boxes_api)
 
 app.get('/', (req, res) => res.json({ versions: [ "v1"] }))
 
