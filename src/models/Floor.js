@@ -33,7 +33,6 @@ module.exports = (sequelize, DataTypes) => {
         Floor.belongsTo(models.FloorCategory, { foreignKey: { allowNull: false } })
         Floor.belongsTo(models.FloorType, { foreignKey: { allowNull: false } })
         Floor.belongsTo(models.Color, { foreignKey: { allowNull: false } })
-        Floor.belongsTo(models.Brand, { foreignKey: { allowNull: false } })
         Floor.belongsTo(models.User, { foreignKey: { allowNull: false } })
         Floor.belongsToMany(models.FloorTileSize, { 
             // foreignKey: { allowNull: false },

@@ -1,5 +1,5 @@
 
-const { Floor, FloorType, FloorCategory, Brand, User, Color } = require("../../models");
+const { Floor, FloorType, FloorCategory, User, Color } = require("../../models");
 const { Op } = require("sequelize");
 const { getFloorWithFloorTileSizes, updateFloorTileSizes } = require("../floor-floor-tile-sizes-dal");
 const { getFloorBoxesInfo } = require("../floor-boxes-dal");
@@ -7,7 +7,7 @@ const { getFloorBoxesInfo } = require("../floor-boxes-dal");
 module.exports = {
     findOne: async ({floor_id, UserId, ...stock_info_args}) => {
         let floor = await Floor.findByPkOr404(floor_id,{ 
-            include: [ FloorType, FloorCategory, Brand, Color ] 
+            include: [ FloorType, FloorCategory, Color ] 
         })
         floor = await getFloorWithFloorTileSizes({ floor });
         // Insert User property into Floor
@@ -24,7 +24,7 @@ module.exports = {
     },
     findAll: async (options = {}) => {
         let where = {}
-        let relations = ["ColorId", "FloorCategoryId", "BrandId", "FloorTypeId"]
+        let relations = ["ColorId", "FloorCategoryId", "FloorTypeId"]
         relations.map(field_name => options[field_name] ? where[field_name] = Number(options[field_name]) : null)
         if (options.query) where = { ...where, [Op.or]: [ { "name": { [Op.like]: '%' + options.query + '%' } } ] }
         if (options.min_price !== undefined && options.max_price !== undefined) {
@@ -42,12 +42,12 @@ module.exports = {
     createFloor: async ({ 
         name, description, thumbnail_url,
         FloorCategoryId, FloorId, ColorId, FloorTypeId,
-        BrandId, UserId, floor_tile_sizes
+        UserId, floor_tile_sizes
      }) => {
          let floor = await Floor.create({ 
             name, description, thumbnail_url,
             FloorCategoryId, 
-            FloorId, ColorId, BrandId, UserId, FloorTypeId
+            FloorId, ColorId, UserId, FloorTypeId
          })
          await updateFloorTileSizes({ floor,floor_tile_sizes });
          return await getFloorWithFloorTileSizes({ floor });

@@ -1,6 +1,6 @@
 
 const {
-    Brand, Business, Cart, CartChangeLog,
+    Business, Cart, CartChangeLog,
     CartFloorItem, Color, Contact,
     Country, Employee, Floor, FloorBox,
     FloorCategory, FloorFloorTileSize,
@@ -10,10 +10,6 @@ const {
 } = require("../../models");
 
 module.exports = [
-    {
-        path: "/brands",
-        model: Brand
-    },
     {
         path: "/businesses",
         model: Business

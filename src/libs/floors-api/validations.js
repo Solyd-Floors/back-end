@@ -17,7 +17,6 @@ module.exports = {
         query: yup.object().shape({
             FloorCategoryId: param_id,
             ColorId: param_id,
-            BrandId: param_id,
             FloorTypeId: param_id,
             query: yup.string(),
             min_price: yup.number(),
@@ -34,7 +33,6 @@ module.exports = {
             description: yup.string().required(),
             FloorCategoryId: positive_integer_as_string.required(),
             FloorTypeId: positive_integer_as_string.required(),
-            BrandId: positive_integer_as_string.required(),
             ColorId: positive_integer_as_string.required(),
             floor_tile_sizes: yup.array().of(positive_integer_as_string.required()).required(),
         })
@@ -50,7 +48,6 @@ module.exports = {
             description: yup.string(),
             FloorCategoryId: positive_integer_as_string,
             FloorTypeId: positive_integer_as_string,
-            BrandId: positive_integer_as_string,
             ColorId: positive_integer_as_string,
             floor_tile_sizes: yup.array().of(positive_integer_as_string.required()),
         }),

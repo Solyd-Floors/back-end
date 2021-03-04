@@ -30,7 +30,6 @@ const employees_api = require("./libs/employees-api")
 const industries_api = require("./libs/industries-api")
 const me_api = require("./libs/me-api")
 const auth_api = require("./libs/auth-api")
-const brands_api = require("./libs/brands-api")
 const installers_api = require("./libs/installers-api")
 const floors_api = require("./libs/floors-api")
 const floor_types_api = require("./libs/floor-types-api")
@@ -85,7 +84,6 @@ app.use(V1_PATHNAME_PREFIX, industries_api)
 app.use(V1_PATHNAME_PREFIX, me_api)
 app.use(V1_PATHNAME_PREFIX, team_members_api)
 app.use(V1_PATHNAME_PREFIX, contacts_api)
-app.use(V1_PATHNAME_PREFIX, brands_api);
 app.use(V1_PATHNAME_PREFIX, installers_api);
 app.use(V1_PATHNAME_PREFIX, floors_api);
 app.use(V1_PATHNAME_PREFIX, floor_types_api);
