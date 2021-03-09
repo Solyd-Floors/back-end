@@ -16,19 +16,19 @@ module.exports = {
         return true;
     },
     createUser: async ({
-        email, full_name, password
+        email, first_name, last_name, phone, address, password
     }) => {
         let user = await User.create({
-            full_name, email, 
+            first_name, last_name, phone, address, email, 
             password: await bcrypt.hash(password, SALT_ROUNDS), points: 0, 
         })
         return user;
     },
     createUserUnrestricted: async ({
-        full_name,
+        first_name, last_name, phone, address,
         email, password
     }) => {
-        let args = { full_name, email }
+        let args = { first_name, last_name, phone, address, email }
         if (password) args.password = await bcrypt.hash(password, SALT_ROUNDS)
         let user = await User.create(args)
         return user; 
@@ -40,6 +40,13 @@ module.exports = {
             user[key] = key === "password" ? await bcrypt.hash(data[key], SALT_ROUNDS) : data[key]
         }
         await user.save();
+        return user;
+    },
+    findUserByEmail: async (email,scope) => {
+        let model = User;
+        if (scope) model = model.scope(scope)
+        let user = await model.findOne({ where: { email } });
+        if (!user) throw new ErrorHandler(404, `User with email=${email} not found!`)
         return user;
     }
 }

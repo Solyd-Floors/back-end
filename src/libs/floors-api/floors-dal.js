@@ -51,7 +51,6 @@ module.exports = {
          })
          await updateFloorTileSizes({ floor,floor_tile_sizes });
          return await getFloorWithFloorTileSizes({ floor });
- 
      },
      updateFloor: async ({pk,data}) => {
         let keys = Object.keys(data);

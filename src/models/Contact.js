@@ -5,7 +5,11 @@ const { ErrorHandler } = require("../utils/error");
 module.exports = (sequelize, DataTypes) => {
     let options = { }
     let Contact = sequelize.define('Contact', {
-        full_name: {
+        first_name: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        last_name: {
             type: DataTypes.STRING,
             allowNull: false
         },

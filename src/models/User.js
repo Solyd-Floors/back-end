@@ -5,7 +5,7 @@ const { ErrorHandler } = require("../utils/error");
 module.exports = (sequelize, DataTypes) => {
     let options = { 
         defaultScope: {
-            attributes: { exclude: [ "password" ] },
+            attributes: { exclude: [ "password", "forget_password_token" ] },
             order: [
                 [
                     "isGuest", "ASC"
@@ -17,6 +17,9 @@ module.exports = (sequelize, DataTypes) => {
             withPassword: {
                 attributes: {},
             },
+            withForgetPasswordToken: {
+                attributes: {}
+            }
         }
     }
     let User = sequelize.define('User', {
@@ -29,14 +32,29 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false,
         },
-        full_name: {
+        first_name: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        last_name: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        phone: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        address: {
+            type: DataTypes.STRING,
+            allowNull: true
         },
         isAdmin: {
             type: DataTypes.BOOLEAN,
             defaultValue: true,
             allowNull: false
+        },
+        forget_password_token: {
+            type: DataTypes.STRING
         },
         isGuest: {
             type: DataTypes.BOOLEAN,

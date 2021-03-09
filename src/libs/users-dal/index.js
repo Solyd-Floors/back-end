@@ -10,7 +10,8 @@ module.exports = {
         return await User.create({
             email: `guest-${id}`,
             password: `guest-${id}`,
-            full_name: `guest-${id}`,
+            first_name: `guest-${id}`,
+            last_name: `guest-${id}`,
             isGuest: true
         })
     }
