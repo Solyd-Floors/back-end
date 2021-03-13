@@ -5,14 +5,6 @@ const app = module.exports = express();
 
 const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
 
-const { 
-    post_users, 
-    post_users_unrestricted, 
-    patch_users_unrestricted, 
-    only_user_id_param_required,
-    post_send_verification_link,
-    post_reset_password
-} = require("./validations");
 const createToken = require("../utils/createToken");
 const {
     updateUser,
@@ -27,9 +19,16 @@ const { ErrorHandler } = require("../../utils/error");
 const jwt = require("jsonwebtoken");
 const email_manager = require("../email-manager");
 
+const yup = require("yup");
+const { email, password } = require("../utils/validations");
+
 app.use(allowCrossDomain)
 
-app.post("/users/send_verification_link", validateRequest(post_send_verification_link), async (req,res) => {
+app.post("/users/send_verification_link", validateRequest(yup.object().shape({
+    requestBody: yup.object().shape({
+        email: yup.string().email().required()
+    })
+})), async (req,res) => {
     let { email } = req.body;
     let code = Math.floor(100000 + Math.random() * 900000);
     let forget_password_token = jwt.sign({
@@ -73,7 +72,12 @@ app.get("/users/reset_password/:token", async (req, res) => {
     })
 });
 
-app.post("/users/reset_password/:token", validateRequest(post_reset_password), async (req, res) => {
+app.post("/users/reset_password/:token", validateRequest(yup.object().shape({
+    requestBody: yup.object().shape({
+        new_password: password.required(),
+        confirm_new_password: password.required().oneOf([yup.ref("new_password")]),
+    })
+})), async (req, res) => {
     let { new_password } = req.body;
     let { token } = req.params;
     let decoded;
@@ -104,7 +108,11 @@ app.get("/users", [
 })
 
 app.get("/users/:user_id", [
-    jwtRequired, passUserFromJWT, validateRequest(only_user_id_param_required)
+    jwtRequired, passUserFromJWT, validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            user_id: yup.string().test("is-number", val => !isNaN(Number(val)))
+        })
+    }))
 ], async (req,res) => {
     let user = await findByPk(req.params.user_id);
     if (!user) throw ErrorHandler.get404("User")
@@ -117,7 +125,11 @@ app.get("/users/:user_id", [
 
 app.delete("/users/:user_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(only_user_id_param_required)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            user_id: yup.string().test("is-number", val => !isNaN(Number(val)))
+        })
+    }))
 ], async (req,res) => {
     await deleteUser(req.params.user_id)
     return res.json({
@@ -128,8 +140,19 @@ app.delete("/users/:user_id", [
 
 app.patch("/users/:user_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(only_user_id_param_required),
-    validateRequest(patch_users_unrestricted)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            user_id: yup.string().test("is-number", val => !isNaN(Number(val)))
+        }),
+        requestBody: yup.object().shape({
+            email: email,
+            password: password,
+            first_name: yup.string().min(5),
+            last_name: yup.string().min(5),
+            phone: yup.string(),
+            address: yup.string(),
+        })
+    }))
 ], async (req,res) => {
     let user = await updateUser({
         pk: req.params.user_id,
@@ -144,7 +167,16 @@ app.patch("/users/:user_id", [
     })
 })
 
-app.post("/users", validateRequest(post_users), async (req, res) => {
+app.post("/users", validateRequest(yup.object().shape({
+    requestBody: yup.object().shape({
+        email: email.required(),
+        password: password.required(),
+        first_name: yup.string().required().min(5),
+        last_name: yup.string().required().min(5),
+        phone: yup.string(),
+        address: yup.string(),
+    })
+})), async (req, res) => {
     let user = await createUser(req.body);
     return res.json({
         message: "success",
@@ -155,7 +187,16 @@ app.post("/users", validateRequest(post_users), async (req, res) => {
 
 app.post("/users/unrestricted", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(post_users_unrestricted)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            email: email.required(),
+            password: password.required(),
+            first_name: yup.string().required().min(5),
+            last_name: yup.string().required().min(5),
+            phone: yup.string(),
+            address: yup.string(),
+        })
+    }))
 ], async (req, res) => {
     let user = await createUserUnrestricted(req.body);
     return res.json({

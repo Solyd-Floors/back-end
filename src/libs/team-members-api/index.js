@@ -5,7 +5,6 @@ const app = module.exports = express();
 
 const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
 
-const { post_team_members, patch_team_members, delete_team_members } = require("./validations");
 const { findAll, createTeamMember, updateTeamMember, deleteTeamMember } = require("./team-members-dal");
 const { ErrorHandler } = require("../../utils/error");
 
@@ -16,6 +15,9 @@ const uploadFile = require("../aws/uploadFile");
 const uploadMiddleware = upload.fields([
     { name: 'profile_picture', maxCount: 1 },
 ])
+
+const yup = require("yup");
+const { param_id } = require("../utils/validations");
 
 app.use(allowCrossDomain)
 
@@ -29,7 +31,13 @@ app.get("/team_members", async (req,res) => {
 })
 app.post("/team_members",[
     jwtRequired, passUserFromJWT, adminRequired,
-    uploadMiddleware, validateRequest(post_team_members)
+    uploadMiddleware, validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            full_name: yup.string().required(),
+            position: yup.string().required(),
+            description: yup.string().required(),
+        })
+    }))
 ], async (req,res) => {
     if (req.files) {
         if (
@@ -48,7 +56,16 @@ app.post("/team_members",[
 
 app.patch("/team_members/:team_member_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    uploadMiddleware, validateRequest(patch_team_members)
+    uploadMiddleware, validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            full_name: yup.string().required(),
+            position: yup.string().required(),
+            description: yup.string().required(),
+        }),
+        params: yup.object().shape({
+            team_member_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     if (req.files) {
         if (
@@ -70,7 +87,11 @@ app.patch("/team_members/:team_member_id", [
 
 app.delete("/team_members/:team_member_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(delete_team_members)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            team_member_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     await deleteTeamMember(req.params.team_member_id)
     return res.json({

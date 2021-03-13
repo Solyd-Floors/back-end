@@ -8,6 +8,7 @@ const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRe
 const { post_countries } = require("./validations");
 const { findAll, createCountry, updateCountry, deleteCountry } = require("./countries-dal");
 const { ErrorHandler } = require("../../utils/error");
+const yup = require("yup");
 
 app.use(allowCrossDomain)
 
@@ -22,7 +23,11 @@ app.get("/countries", async (req,res) => {
 
 app.patch("/countries/:country_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(post_countries)
+    validateRequest(up.object().shape({
+        requestBody: yup.object().shape({
+            name: yup.string().required()
+        })
+    }))
 ], async (req,res) => {
     let country = await updateCountry({ 
         pk: Number(req.params.country_id),

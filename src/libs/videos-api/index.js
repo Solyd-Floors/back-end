@@ -5,9 +5,11 @@ const app = module.exports = express();
 
 const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
 
-const { post_videos, patch_videos, delete_videos } = require("./validations");
 const { findAll, createVideo, updateVideo, deleteVideo } = require("./videos-dal");
 const { ErrorHandler } = require("../../utils/error");
+
+const yup = require("yup");
+const { param_id } = require("../utils/validations");
 
 app.use(allowCrossDomain)
 
@@ -22,7 +24,13 @@ app.get("/videos", async (req,res) => {
 
 app.post("/videos",[
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(post_videos)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            youtube_url: yup.string().required(),
+            title: yup.string().required(),
+            description: yup.string().required(),
+        })
+    }))
 ], async (req,res) => {
     let video = await createVideo(req.body);
     return res.json({
@@ -34,7 +42,16 @@ app.post("/videos",[
 
 app.patch("/videos/:video_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(patch_videos)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            youtube_url: yup.string().required(),
+            title: yup.string().required(),
+            description: yup.string().required(),
+        }),
+        params: yup.object().shape({
+            video_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     let video = await updateVideo({
         pk: req.params.video_id,
@@ -49,7 +66,11 @@ app.patch("/videos/:video_id", [
 
 app.delete("/videos/:video_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(delete_videos)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            video_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     await deleteVideo(req.params.video_id)
     return res.json({

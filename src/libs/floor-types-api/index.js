@@ -5,9 +5,11 @@ const app = module.exports = express();
 
 const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
 
-const { post_floor_types, patch_floor_types, delete_floor_types } = require("./validations");
 const { findAll, createFloorType, updateFloorType, deleteFloorType } = require("./floor-types-dal");
 const { ErrorHandler } = require("../../utils/error");
+
+const yup = require("yup");
+const { param_id } = require("../utils/validations");
 
 app.use(allowCrossDomain)
 
@@ -22,7 +24,11 @@ app.get("/floor_types", async (req,res) => {
 
 app.post("/floor_types",[
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(post_floor_types)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            name: yup.string().required(),
+        })
+    }))
 ], async (req,res) => {
     let floor_type = await createFloorType(req.body);
     return res.json({
@@ -34,7 +40,14 @@ app.post("/floor_types",[
 
 app.patch("/floor_types/:floor_type_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(patch_floor_types)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            name: yup.string().required(),
+        }),
+        params: yup.object().shape({
+            floor_type_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     let floor_type = await updateFloorType({
         pk: req.params.floor_type_id,
@@ -49,7 +62,11 @@ app.patch("/floor_types/:floor_type_id", [
 
 app.delete("/floor_types/:floor_type_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(delete_floor_types)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            floor_type_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     await deleteFloorType(req.params.floor_type_id)
     return res.json({

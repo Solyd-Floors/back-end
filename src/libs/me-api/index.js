@@ -13,7 +13,6 @@ const {
     multipleAuth
 } = require("../../middlewares");
 
-const { post_me_cart_remove_item, post_carts_add_floor_boxes } = require("./validations");
 const { 
     getMyCartFloorItemsInfo, 
     discardCart, 
@@ -30,6 +29,11 @@ const {
 } = require("../me-dal")
 const { ErrorHandler } = require("../../utils/error");
 const { createCart } = require("../carts-dal");
+
+const yup = require("yup");
+const { id } = require("../utils/validations");
+
+let mil_type_schema = yup.number().integer().positive().required()
 
 app.use(allowCrossDomain)
 
@@ -78,7 +82,14 @@ app.post("/me/cart/discard", [
 
 app.post("/me/cart/add/floor_boxes", [
     jwtRequired, multipleAuth([passBusinessFromJWT, passUserOrGuestFromJWT]),
-    validateRequest(post_carts_add_floor_boxes)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            mil_type: mil_type_schema,
+            FloorId: id.required(),
+            FloorTileSizeId: id.required(),
+            boxes_amount: id.required(),
+        })
+    }))
 ], async (req,res) => {
     let cart = await addBoxesToCart2({
         UserId: req.business ? req.business.UserId : req.user.id, 
@@ -93,7 +104,14 @@ app.post("/me/cart/add/floor_boxes", [
 
 app.post("/me/cart/remove/floor_boxes", [
     jwtRequired, multipleAuth([passBusinessFromJWT, passUserOrGuestFromJWT]),
-    validateRequest(post_carts_add_floor_boxes)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            mil_type: mil_type_schema,
+            FloorId: id.required(),
+            FloorTileSizeId: id.required(),
+            boxes_amount: id.required(),
+        })
+    }))
 ], async (req,res) => {
     let cart_floor_item = await removeBoxesFromCart({
         UserId: req.business ? req.business.UserId : req.user.id, 
@@ -108,7 +126,11 @@ app.post("/me/cart/remove/floor_boxes", [
 
 app.post("/me/cart/remove/item", [
     jwtRequired, multipleAuth([passBusinessFromJWT, passUserOrGuestFromJWT]),
-    validateRequest(post_me_cart_remove_item)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            CartFloorItemId: id.required()
+        })
+    }))
 ], async (req,res) => {
     let cart = await removeItemFromCart({
         UserId: req.business ? req.business.UserId : req.user.id, 

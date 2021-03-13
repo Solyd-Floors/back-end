@@ -8,9 +8,11 @@ const {
     passUserFromJWT, adminRequired
 } = require("../../middlewares");
 
-const { get_floor_tile_sizes, post_floor_tile_sizes, delete_floor_tile_sizes, patch_floor_tile_sizes } = require("./validations");
 const { findAll, createFloorTileSize, updateFloorTileSize, deleteFloorTileSize, findOne } = require("./floor-tile-sizes-dal");
 const { ErrorHandler } = require("../../utils/error");
+
+const yup = require("yup");
+const { param_id, positive_integer_as_string } = require("../utils/validations");
 
 app.use(allowCrossDomain)
 
@@ -24,7 +26,11 @@ app.get("/floor_tile_sizes/:floor_tile_size_id", async (req,res) => {
 })
 
 app.get("/floor_tile_sizes", [
-    validateRequest(get_floor_tile_sizes)
+    validateRequest(yup.object().shape({
+        query: yup.object().shape({
+
+        })
+    }))
 ], async (req,res) => {
     let floor_tile_sizes = await findAll(req.query);
     return res.json({
@@ -36,7 +42,15 @@ app.get("/floor_tile_sizes", [
 
 app.patch("/floor_tile_sizes/:floor_tile_size_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-     validateRequest(patch_floor_tile_sizes)
+     validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            width: yup.number().integer().positive(),
+            height: yup.number().integer().positive(),
+        }),
+        params: yup.object().shape({
+            floor_tile_size_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     let floor_tile_size = await updateFloorTileSize({ 
         pk: req.params.floor_tile_size_id,
@@ -51,7 +65,11 @@ app.patch("/floor_tile_sizes/:floor_tile_size_id", [
 
 app.delete("/floor_tile_sizes/:floor_tile_size_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(delete_floor_tile_sizes)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            floor_tile_size_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     await deleteFloorTileSize(req.params.floor_tile_size_id);
     return res.json({
@@ -62,7 +80,12 @@ app.delete("/floor_tile_sizes/:floor_tile_size_id", [
 
 app.post("/floor_tile_sizes", [
     jwtRequired, passUserFromJWT, adminRequired,
-     validateRequest(post_floor_tile_sizes)
+     validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            width: yup.number().integer().positive().required(),
+            height: yup.number().integer().positive().required(),
+        })
+    }))
 ], async (req,res) => {
     let floor_tile_size = await createFloorTileSize(req.body)
     return res.json({

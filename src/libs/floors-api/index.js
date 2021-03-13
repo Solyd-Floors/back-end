@@ -11,7 +11,6 @@ const {
     passUserOrCreateGuestFromJWT, passBusinessFromJWT
 } = require("../../middlewares");
 
-const { get_floors, post_floors, delete_floors, patch_floors, get_floors_floor_id } = require("./validations");
 const { findAll, createFloor, updateFloor, deleteFloor, findOne } = require("./floors-dal");
 const { ErrorHandler } = require("../../utils/error");
 
@@ -22,10 +21,22 @@ const uploadMiddleware = upload.fields([
     { name: 'thumbnail', maxCount: 1 },
 ])
 
+const yup = require("yup");
+const { param_id, positive_integer_as_string } = require("../utils/validations");
+
 app.use(allowCrossDomain)
 
 app.get("/floors/:floor_id",[
-    validateRequest(get_floors_floor_id),
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            floor_id: param_id.required()
+        }),
+        query: yup.object().shape({
+            mil_type: param_id, 
+            FloorTileSizeId: param_id, 
+            boxes_amount: param_id
+        })
+    })),
     jwtNotRequired, multipleAuth([ passBusinessFromJWT, passUserOrCreateGuestFromJWT ])
 ], async (req,res) => {
     let floor = await findOne({ 
@@ -43,7 +54,20 @@ app.get("/floors/:floor_id",[
 app.get("/floors", [
     query_param_string_to_integer("min_price"),
     query_param_string_to_integer("max_price"),
-    validateRequest(get_floors)
+    validateRequest(yup.object().shape({
+        query: yup.object().shape({
+            FloorCategoryId: param_id,
+            ColorId: param_id,
+            FloorTypeId: param_id,
+            query: yup.string(),
+            min_price: yup.number(),
+            max_price: yup.number().when('min_price', {
+                is: val => Boolean(val), // alternatively: (val) => val == true
+                then: yup.number().required(),
+                otherwise: yup.number(),
+            })
+        })
+    }))
 ], async (req,res) => {
     let floors = await findAll(req.query);
     return res.json({
@@ -55,7 +79,19 @@ app.get("/floors", [
 
 app.patch("/floors/:floor_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    uploadMiddleware, validateRequest(patch_floors)
+    uploadMiddleware, validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            name: yup.string(),
+            description: yup.string(),
+            FloorCategoryId: positive_integer_as_string,
+            FloorTypeId: positive_integer_as_string,
+            ColorId: positive_integer_as_string,
+            floor_tile_sizes: yup.array().of(positive_integer_as_string.required()),
+        }),
+        params: yup.object().shape({
+            floor_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     if (req.files) {
         if (
@@ -79,7 +115,11 @@ app.patch("/floors/:floor_id", [
 
 app.delete("/floors/:floor_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(delete_floors)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            floor_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     await deleteFloor(req.params.floor_id);
     return res.json({
@@ -91,7 +131,16 @@ app.delete("/floors/:floor_id", [
 app.post("/floors", [
     jwtRequired, passUserFromJWT, adminRequired,
     uploadMiddleware, body_param_string_to_integer("price"), 
-    validateRequest(post_floors)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            name: yup.string().required(),
+            description: yup.string().required(),
+            FloorCategoryId: positive_integer_as_string.required(),
+            FloorTypeId: positive_integer_as_string.required(),
+            ColorId: positive_integer_as_string.required(),
+            floor_tile_sizes: yup.array().of(positive_integer_as_string.required()).required(),
+        })
+    }))
 ], async (req,res) => {
     if (req.files) {
         if (

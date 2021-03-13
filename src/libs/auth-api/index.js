@@ -9,12 +9,15 @@ const { ErrorHandler } = require("../../utils/error")
 
 const createToken = require("../utils/createToken")
 const { findUserByPk } = require("../users-dal");
-const { post_auth, post_employee_auth } = require("./validations");
 
 const { validateUserCredentials, validateEmployeeCredentials } = require("./validateCredentials");
 const { jwtNotRequired, passUserOrCreateGuestFromJWT, passEmployeeFromJWT } = require("../../middlewares");
 const { findByUserPk: findBusinessByUserPk } = require("../businesses-dal");
 const passBusinessFromJWT = require("../../middlewares/passBusinessFromJWT");
+
+
+const yup = require("yup");
+const { email, password, id } = require("../utils/validations");
 
 const getUserResponse = user => ({
     status: "success",
@@ -52,7 +55,12 @@ app.get('/auth', [jwtNotRequired, passUserOrCreateGuestFromJWT], async (req, res
     return res.json(getUserResponse(req.user))
 });
 
-app.post('/auth', validateRequest(post_auth), async (req, res) => {
+app.post('/auth', validateRequest(yup.object().shape({
+    requestBody: yup.object().shape({
+        email: email.required(),
+        password: password.required(),
+    }).required()
+})), async (req, res) => {
     let user = await validateUserCredentials(req.body)
     return res.json(getUserResponse(user))
 });
@@ -66,7 +74,12 @@ app.get('/businesses/auth', [jwtRequired, passBusinessFromJWT], async (req, res)
     return res.json(getBusinessResponse(req.business))
 });
 
-app.post("/businesses/auth", validateRequest(post_auth), async (req,res) => {
+app.post("/businesses/auth", validateRequest(yup.object().shape({
+    requestBody: yup.object().shape({
+        email: email.required(),
+        password: password.required(),
+    }).required()
+})), async (req,res) => {
     let user = await validateUserCredentials(req.body);
     let business = await findBusinessByUserPk(user.id);
     console.log({user,business})
@@ -79,7 +92,13 @@ app.get('/employee/auth', [jwtRequired, passEmployeeFromJWT], async (req, res) =
     return res.json(getEmployeeResponse(employee))
 });
 
-app.post("/employee/auth", validateRequest(post_employee_auth), async (req,res) => {
+app.post("/employee/auth", validateRequest(yup.object().shape({
+    requestBody: yup.object().shape({
+        BusinessId: id.required(),
+        email: email.required(),
+        password: password.required(),
+    }).required()
+})), async (req,res) => {
     let employee = await validateEmployeeCredentials(req.body);
     if (!employee) throw INVALID_CREDENTIALS_ERROR
     return res.json(getEmployeeResponse(employee))

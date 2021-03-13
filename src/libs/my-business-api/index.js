@@ -12,11 +12,12 @@ const {
     passBusinessFromJWT
 } = require("../../middlewares");
 
-const { get_employees_employee_id, post_my_business_employees, patch_my_business_employees, post_my_business_ship_to_addresses, delete_my_business_ship_to_addresses } = require("./validations");
 const { findShipToAddressByBusinessId, deleteShipToAddress, createShipToAddress, findOneShipToAddressOr404, findBusinessOrders } = require("./my-business-dal");
 const { ErrorHandler } = require("../../utils/error");
 const { createEmployee, findEmployeesByBusiness, findEmployeeByIdAndBusinessId, deleteEmployee, updateEmployee } = require("../employees-dal");
 const { getUserActiveCart } = require("../me-dal");
+const yup = require("yup")
+const { param_id } = require("../utils/validations")
 
 app.use(allowCrossDomain)
 
@@ -33,7 +34,11 @@ app.get("/my_business/employees", [
 
 app.get("/my_business/employees/:employee_id", [
     jwtRequired, passBusinessFromJWT,
-    validateRequest(get_employees_employee_id)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            employee_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     let employee = await findEmployeeByIdAndBusinessId({
         id: req.params.employee_id,
@@ -49,7 +54,11 @@ app.get("/my_business/employees/:employee_id", [
 
 app.delete("/my_business/employees/:employee_id", [
     jwtRequired, passBusinessFromJWT,
-    validateRequest(get_employees_employee_id)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            employee_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     let employee = await findEmployeeByIdAndBusinessId({
         id: req.params.employee_id,
@@ -77,7 +86,21 @@ app.get("/my_business/orders", [
 
 app.post("/my_business/employees",[
     jwtRequired, passBusinessFromJWT,
-    validateRequest(post_my_business_employees)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            email: yup.string().email().required(),
+            password: yup.string().min(8).required(),
+            first_name: yup.string().required(),
+            last_name: yup.string().required(),
+            address: yup.string(),
+            address2: yup.string(),
+            city: yup.string(),
+            state: yup.string(),
+            country: yup.string(),
+            postcode: yup.string(),
+            phone_number: yup.string(),
+        })
+    }))
 ], async (req,res) => {
     let employee = await createEmployee({
         ...req.body,
@@ -92,7 +115,24 @@ app.post("/my_business/employees",[
 
 app.patch("/my_business/employees/:employee_id",[
     jwtRequired, passBusinessFromJWT,
-    validateRequest(patch_my_business_employees)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            employee_id: param_id.required()
+        }),
+        requestBody: yup.object().shape({
+            email: yup.string().email().required(),
+            password: yup.string().min(8).required(),
+            first_name: yup.string().required(),
+            last_name: yup.string().required(),
+            address: yup.string(),
+            address2: yup.string(),
+            city: yup.string(),
+            state: yup.string(),
+            country: yup.string(),
+            postcode: yup.string(),
+            phone_number: yup.string(),
+        })
+    }))
 ], async (req,res) => {
     let employee = await updateEmployee({
         pk: req.params.employee_id,
@@ -134,7 +174,11 @@ app.get("/my_business/ship_to_addresses/:ship_to_address_id", [
 
 app.post("/my_business/ship_to_addresses", [
     jwtRequired, passBusinessFromJWT,
-    validateRequest(post_my_business_ship_to_addresses)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            address: yup.string().required()
+        })
+    }))
 ], async (req,res) => {
     let ship_to_address = await createShipToAddress({
         BusinessId: req.business.id,
@@ -149,7 +193,11 @@ app.post("/my_business/ship_to_addresses", [
 
 app.delete("/my_business/ship_to_addresses/:ship_to_address_id", [
     jwtRequired, passBusinessFromJWT,
-    validateRequest(delete_my_business_ship_to_addresses)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            ship_to_address_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     let ship_to_address = await deleteShipToAddress({
         BusinessId: req.business.id,
