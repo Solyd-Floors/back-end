@@ -59,8 +59,7 @@ app.use(allowCrossDomain)
 app.get('/auth', [
     jwtNotRequired, passUserOrCreateGuestFromJWT,
     validateRequest(
-        yup.object().shape({
-        }).meta({ path: "/auth", method: "get", security: "jwt_auth", tag: "Auth" })
+        yup.object().meta({ path: "/auth", method: "get", security: "jwt_auth", tag: "Auth" })
     ,true, { auto_docs_enabled: true })
 ], async (req, res) => {
     return res.json(getUserResponse(req.user))
