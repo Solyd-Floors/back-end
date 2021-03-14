@@ -5,7 +5,6 @@ const app = module.exports = express();
 
 const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
 
-const { post_countries } = require("./validations");
 const { findAll, createCountry, updateCountry, deleteCountry } = require("./countries-dal");
 const { ErrorHandler } = require("../../utils/error");
 const yup = require("yup");
@@ -23,7 +22,7 @@ app.get("/countries", async (req,res) => {
 
 app.patch("/countries/:country_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(up.object().shape({
+    validateRequest(yup.object().shape({
         requestBody: yup.object().shape({
             name: yup.string().required()
         })
@@ -41,7 +40,11 @@ app.patch("/countries/:country_id", [
 })
 
 app.post("/countries", [
-    validateRequest(post_countries),
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            name: yup.string().required()
+        })
+    })),
     jwtRequired, passUserFromJWT, adminRequired
 ], async (req,res) => {
     let country = await createCountry(req.body);

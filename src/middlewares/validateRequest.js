@@ -1,4 +1,5 @@
 const { ErrorHandler } = require("../utils/error")
+const jts_interpreter = require("../jts_interpreter")
 
 const getAcceptableBodyOutput = body => {
     let new_body = JSON.parse(JSON.stringify(body));
@@ -7,6 +8,10 @@ const getAcceptableBodyOutput = body => {
 }
 
 module.exports = (yupSchema,strict = true,options) => {
+    if (options && options.auto_docs_enabled){
+        jts_interpreter.parse_schema(yupSchema)
+        console.log(jts_interpreter.paths)
+    }
     return async (req,res,next) => {
         if (options){
             let {

@@ -18,6 +18,7 @@ const docs_collector = new DocsCollector(
     __dirname + "/libs/api-docs/swagger-input.json",
     __dirname + "/libs/api-docs/swagger.json"
 )
+docs_collector.generalAddYAML = () => {}
 
 global.docs_collector = docs_collector;
 
@@ -75,7 +76,6 @@ app.use(allowCrossDomain)
 
 const V1_PATHNAME_PREFIX = "/api/v1";
 
-app.use(V1_PATHNAME_PREFIX, api_docs)
 app.use(V1_PATHNAME_PREFIX, auth_api)
 app.use(V1_PATHNAME_PREFIX, users_api)
 app.use(V1_PATHNAME_PREFIX, businesses_api)
@@ -97,6 +97,7 @@ app.use(V1_PATHNAME_PREFIX, carts_api);
 app.use(V1_PATHNAME_PREFIX, orders_api);
 app.use(V1_PATHNAME_PREFIX, inventory_api);
 app.use(V1_PATHNAME_PREFIX, my_business_api);
+app.use(V1_PATHNAME_PREFIX, api_docs)
 
 const V2_PATHNAME_PREFIX = "/api/v2";
 const get_model_pagination = require("./libs/v2-get-model-pagination")
