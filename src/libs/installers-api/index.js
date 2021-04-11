@@ -26,7 +26,7 @@ app.get("/installers",[
     validateRequest(yup.object().shape({
         query: yup.object().shape({
             job_status: yup.string().oneOf(["EMPLOYED","UNEMPLOYED"]),
-            CountryId: param_id.required(),
+            CountryId: param_id,
             min_age: yup.number(),
             max_age: yup.number().when('min_age', {
                 is: val => Boolean(val), // alternatively: (val) => val == true

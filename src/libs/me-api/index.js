@@ -31,7 +31,8 @@ const { ErrorHandler } = require("../../utils/error");
 const { createCart } = require("../carts-dal");
 
 const yup = require("yup");
-const { id } = require("../utils/validations");
+const { id, param_id } = require("../utils/validations");
+const { createMeReview } = require("../reviews-dal");
 
 let mil_type_schema = yup.number().integer().positive().required()
 
@@ -173,7 +174,6 @@ app.get("/me/orders/:order_id", [
 app.post("/me/orders/:order_id/cancel", [
     jwtRequired, multipleAuth([passBusinessFromJWT, passUserOrGuestFromJWT]),
 ], async (req,res) => {
-    console.log(555)
     let UserId = req.business ? req.business.UserId : req.user.id
     let order = await cancelOrder({ UserId, OrderId: req.params.order_id })
     return res.json({
@@ -181,4 +181,32 @@ app.post("/me/orders/:order_id/cancel", [
         message: "success",
         data: { order }
     })
+})
+
+app.post("/me/review/floor/:floor_id", [
+    jwtRequired, passUserOrGuestFromJWT,
+    validateRequest(
+        yup.object().shape({
+            requestBody: yup.object().shape({
+                description: yup.string().required(),
+                value: yup.number().integer().positive().min(0).max(10).required(),
+            }),
+            params: yup.object().shape({
+                floor_id: param_id.required()
+            })
+        })
+    )
+], async (req,res) => {
+    let { id: UserId } = req.user;
+    let { floor_id: FloorId } = req.params;
+    console.log(req.params)
+    let review = await createMeReview({
+        UserId, FloorId, ...req.body
+    })
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { review }
+    })
+
 })
