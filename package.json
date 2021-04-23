@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/gjergjk71/solyd-floors-back-end#readme",
   "dependencies": {
+    "@woocommerce/woocommerce-rest-api": "^1.0.1",
     "aws-sdk": "^2.809.0",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
@@ -38,8 +39,11 @@
     "nodemailer": "^6.5.0",
     "pg": "^8.5.1",
     "sequelize": "^6.3.5",
+    "stripe": "^8.143.0",
     "swagger-ui-express": "^4.1.5",
     "uuid": "^8.3.2",
+    "woocommerce": "^2.4.0",
+    "woocommerce-api": "^1.5.0",
     "yamljs": "^0.3.0",
     "yup": "^0.30.0"
   }

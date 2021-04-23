@@ -27,12 +27,10 @@ app.get("/floor_boxes/info", [
         query: yup.object().shape({
             mil_type: positive_integer_as_string.required(),
             FloorId: positive_integer_as_string.required(),
-            FloorTileSizeId: positive_integer_as_string.required() 
         })
     })),
     query_param_string_to_integer("mil_type"),
     query_param_string_to_integer("FloorId"),
-    query_param_string_to_integer("FloorTileSizeId"),
     jwtRequired, passUserOrGuestFromJWT
 ],async (req,res) => {
     let info = await getFloorBoxesInfo({ 
@@ -76,7 +74,6 @@ app.patch("/floor_boxes/:floor_box_id", [
             mil_type: mil_type_schema,
             price: yup.number().positive(),
             FloorId: id,
-            FloorTileSizeId: id,
         }),
         params: yup.object().shape({
             floor_box_id: param_id.required()
@@ -117,7 +114,6 @@ app.post("/floor_boxes", [
             mil_type: mil_type_schema.required(),
             price: yup.number().positive().required(),
             FloorId: id.required(),
-            FloorTileSizeId: id.required(),
         })
     }))
 ], async (req,res) => {

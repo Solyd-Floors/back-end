@@ -22,9 +22,8 @@ let mil_type_schema = yup.number().integer().positive()
 
 let post_inventory_shape = yup.object().shape({
     mil_type: mil_type_schema.required(),
-    price: yup.number().positive().required(),
+    price_per_square_foot: yup.number().positive().required(),
     FloorId: id.required(),
-    FloorTileSizeId: id.required(),
     amount: yup.number().positive().required(),
 })
 

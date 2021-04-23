@@ -35,7 +35,6 @@ const installers_api = require("./libs/installers-api")
 const floors_api = require("./libs/floors-api")
 const floor_types_api = require("./libs/floor-types-api")
 const floor_categories_api = require("./libs/floor-categories-api")
-const floor_tile_sizes_api = require("./libs/floor-tile-sizes-api")
 const floor_boxes_api = require("./libs/floor-boxes-api")
 const countries_api = require("./libs/countries-api")
 const contacts_api = require("./libs/contacts-api")
@@ -44,6 +43,7 @@ const videos_api = require("./libs/videos-api")
 const colors_api = require("./libs/colors-api")
 const carts_api = require("./libs/carts-api")
 const orders_api = require("./libs/orders-api")
+const general_api = require("./libs/general-api")
 const inventory_api = require("./libs/inventory-api")
 
 docs_collector.generateSwaggerDocument()
@@ -88,7 +88,6 @@ app.use(V1_PATHNAME_PREFIX, installers_api);
 app.use(V1_PATHNAME_PREFIX, floors_api);
 app.use(V1_PATHNAME_PREFIX, floor_types_api);
 app.use(V1_PATHNAME_PREFIX, floor_categories_api)
-app.use(V1_PATHNAME_PREFIX, floor_tile_sizes_api)
 app.use(V1_PATHNAME_PREFIX, floor_boxes_api)
 app.use(V1_PATHNAME_PREFIX, countries_api);
 app.use(V1_PATHNAME_PREFIX, videos_api);
@@ -98,9 +97,17 @@ app.use(V1_PATHNAME_PREFIX, orders_api);
 app.use(V1_PATHNAME_PREFIX, inventory_api);
 app.use(V1_PATHNAME_PREFIX, my_business_api);
 app.use(V1_PATHNAME_PREFIX, api_docs)
+app.use(V1_PATHNAME_PREFIX, general_api);
+
+
+app.get("/test", async (req,res) => {
+    let { data } = await WooCommerce.get("products")
+    return res.json({ data })
+})
 
 const V2_PATHNAME_PREFIX = "/api/v2";
-const get_model_pagination = require("./libs/v2-get-model-pagination")
+const get_model_pagination = require("./libs/v2-get-model-pagination");
+const WooCommerce = require('./libs/woocommerce');
 app.use(V2_PATHNAME_PREFIX, get_model_pagination)
 
 

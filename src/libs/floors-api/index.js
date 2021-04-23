@@ -11,7 +11,7 @@ const {
     passUserOrCreateGuestFromJWT, passBusinessFromJWT
 } = require("../../middlewares");
 
-const { findAll, createFloor, updateFloor, deleteFloor, findOne } = require("./floors-dal");
+const { findAll, createFloor, updateFloor, deleteFloor, findOne, findReviewsForFloor } = require("./floors-dal");
 const { ErrorHandler } = require("../../utils/error");
 
 const multer = require('multer');
@@ -33,7 +33,6 @@ app.get("/floors/:floor_id",[
         }),
         query: yup.object().shape({
             mil_type: param_id, 
-            FloorTileSizeId: param_id, 
             boxes_amount: param_id
         })
     })),
@@ -48,6 +47,24 @@ app.get("/floors/:floor_id",[
         code: 200,
         message: "success",
         data: { floor }
+    })
+})
+
+app.get("/floors/:floor_id/reviews", [
+    validateRequest(
+        yup.object().shape({
+            params: yup.object().shape({
+                floor_id: param_id.required()
+            })
+        })
+    )
+], async (req,res) => {
+    let { floor_id } = req.params;
+    let reviews = await findReviewsForFloor(floor_id)
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { reviews }
     })
 })
 
@@ -79,6 +96,8 @@ app.get("/floors", [
 
 app.patch("/floors/:floor_id", [
     jwtRequired, passUserFromJWT, adminRequired,
+    body_param_string_to_integer("plank_dimension_width"),
+    body_param_string_to_integer("plank_dimension_height"), 
     uploadMiddleware, validateRequest(yup.object().shape({
         requestBody: yup.object().shape({
             name: yup.string(),
@@ -86,7 +105,8 @@ app.patch("/floors/:floor_id", [
             FloorCategoryId: positive_integer_as_string,
             FloorTypeId: positive_integer_as_string,
             ColorId: positive_integer_as_string,
-            floor_tile_sizes: yup.array().of(positive_integer_as_string.required()),
+            plank_dimension_width: param_id.required(),
+            plank_dimension_height: param_id.required(),
         }),
         params: yup.object().shape({
             floor_id: param_id.required()
@@ -98,9 +118,6 @@ app.patch("/floors/:floor_id", [
             req.files["thumbnail"] &&
             req.files["thumbnail"].length
         ) req.files["thumbnail"] = req.body["thumbnail_url"] = await uploadFile(req.files["thumbnail"][0]);
-    }
-    if (req.body.floor_tile_sizes){
-        req.body.floor_tile_sizes = req.body.floor_tile_sizes.map(x => Number(x))
     }
     let floor = await updateFloor({ 
         pk: req.params.floor_id,
@@ -130,7 +147,9 @@ app.delete("/floors/:floor_id", [
 
 app.post("/floors", [
     jwtRequired, passUserFromJWT, adminRequired,
-    uploadMiddleware, body_param_string_to_integer("price"), 
+    uploadMiddleware, body_param_string_to_integer("price"),
+    body_param_string_to_integer("plank_dimension_width"),
+    body_param_string_to_integer("plank_dimension_height"), 
     validateRequest(yup.object().shape({
         requestBody: yup.object().shape({
             name: yup.string().required(),
@@ -139,6 +158,8 @@ app.post("/floors", [
             FloorTypeId: positive_integer_as_string.required(),
             ColorId: positive_integer_as_string.required(),
             floor_tile_sizes: yup.array().of(positive_integer_as_string.required()).required(),
+            plank_dimension_width: yup.number().positive().required(),
+            plank_dimension_height: yup.number().positive().required(),
         })
     }))
 ], async (req,res) => {

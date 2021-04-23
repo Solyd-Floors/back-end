@@ -3,7 +3,7 @@ const { CartFloorItem } = require("../../models");
 
 module.exports = {
     findOne: async data => {
-        let data_keys = ["CartId", "mil_type", "boxes_amount", "FloorTileSizeId", "FloorId"]
+        let data_keys = ["CartId", "mil_type", "boxes_amount", "FloorId"]
         let where = {}
         data_keys.map( key => data[key] ? where[key] = data[key] : null)
         console.log({where})
@@ -18,14 +18,14 @@ module.exports = {
         where: { CartId, ...where }
     }),
     findAll: async ({
-        CartId, mil_type, boxes_amount, FloorTileSizeId, FloorId 
+        CartId, mil_type, boxes_amount, FloorId 
     }) => await CartFloorItem.findAll({ 
-        where: { CartId, mil_type, boxes_amount, FloorTileSizeId, FloorId }
+        where: { CartId, mil_type, boxes_amount, FloorId }
     }),
     createCartFloorItem: async ({ 
-        CartId, mil_type, boxes_amount, FloorTileSizeId, FloorId 
+        CartId, mil_type, boxes_amount, FloorId 
      }) => await CartFloorItem.create({ 
-        CartId, mil_type, boxes_amount, FloorTileSizeId, FloorId 
+        CartId, mil_type, boxes_amount, FloorId 
     }),
     deleteCartFloorItem: async ({
         CartId, CartFloorItemId
@@ -35,10 +35,10 @@ module.exports = {
         return cart_floor_item;
     },
     removeBoxesFromCartFloorItem: async ({
-        CartId, mil_type, boxes_amount, FloorTileSizeId, FloorId 
+        CartId, mil_type, boxes_amount, FloorId 
     }) => {
         let cart_floor_item = await CartFloorItem.findOne({
-            where: { CartId, mil_type, FloorTileSizeId, FloorId }
+            where: { CartId, mil_type, FloorId }
         })
         if (!cart_floor_item) return false;
         let updated_amount = cart_floor_item.boxes_amount - boxes_amount;
@@ -50,5 +50,4 @@ module.exports = {
         await cart_floor_item.save();
         return cart_floor_item
     }
-
 }

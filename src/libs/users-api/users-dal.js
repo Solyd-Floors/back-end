@@ -6,7 +6,9 @@ const SALT_ROUNDS = 10;
 
 const bcrypt = require("bcrypt");
 const { ErrorHandler } = require("../../utils/error");
+const { createCustomer } = require("../stripe");
 
+//  TODO: On Stripe fail, handle it
 module.exports = {
     findByPk: async pk => await User.findByPkOr404(pk),
     findAll: async () => await User.findAll(),
@@ -22,6 +24,9 @@ module.exports = {
             first_name, last_name, phone, address, email, 
             password: await bcrypt.hash(password, SALT_ROUNDS), points: 0, 
         })
+        let { id: customer_id } = await createCustomer({ user });
+        user.customer_id = customer_id;
+        await user.save();
         return user;
     },
     createUserUnrestricted: async ({
@@ -31,6 +36,8 @@ module.exports = {
         let args = { first_name, last_name, phone, address, email }
         if (password) args.password = await bcrypt.hash(password, SALT_ROUNDS)
         let user = await User.create(args)
+        user.customer_id = await createCustomer({ user });
+        await user.save();
         return user; 
     },
     updateUser: async ({pk,data}) => {

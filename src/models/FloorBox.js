@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.ENUM("ACTIVE","PURCHASED"),
             defaultValue: "ACTIVE"
         },
-        price: {
+        price_per_square_foot: {
             type: DataTypes.DECIMAL(10,2),
             allowNull: false
         }
@@ -32,7 +32,6 @@ module.exports = (sequelize, DataTypes) => {
 
     FloorBox.associate = models => {
         FloorBox.belongsTo(models.Floor, { foreignKey: { allowNull: false } })
-        FloorBox.belongsTo(models.FloorTileSize, { foreignKey: { allowNull: false } })
         FloorBox.belongsTo(models.CartFloorItem);
     }
     

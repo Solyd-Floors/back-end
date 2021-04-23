@@ -4,39 +4,21 @@ const { ErrorHandler } = require("../../utils/error");
 const { findOne: findOneFloor } = require("../floors-dal")
 const uuid = require("uuid")
 
-let checkFloorTileSizeId = async ({
-    FloorTileSizeId, FloorId
-}) => {
-    let floor = await findOneFloor(FloorId);
-    let allowed = floor.FloorTileSizes.find(x => x.id === FloorTileSizeId)
-    if (!allowed) throw new ErrorHandler(403,"Invalid FloorTileSizeId", [
-        "The floor does not support that FloorTileSize"
-    ])
-    return true
-}
-
 module.exports = {
     findOne: async pk => await FloorBox.findByPkOr404(pk),
     findAll: async () => await FloorBox.findAll(),
     createFloorBox: async ({ 
-        mil_type, price, FloorTileSizeId, FloorId
+        mil_type, price, FloorId
      }) => {
         let SKU = `AUTO-${uuid.v1()}`;
-        await checkFloorTileSizeId({FloorId, FloorTileSizeId})
         return await FloorBox.create({ 
-            SKU, mil_type, price, FloorTileSizeId, FloorId
+            SKU, mil_type, price, FloorId
         })
     },
      updateFloorBox: async ({pk,data}) => {
         let keys = Object.keys(data);
         let floor_box = await FloorBox.findByPkOr404(pk);
         for (let key of keys){
-            if (key === "FloorTileSizeId"){
-                await checkFloorTileSizeId({
-                    FloorId: floor_box.id, 
-                    FloorTileSizeId: data[key]
-                })
-            }
             floor_box[key] = data[key]
         }
         return floor_box;

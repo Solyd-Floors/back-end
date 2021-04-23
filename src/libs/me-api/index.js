@@ -33,15 +33,40 @@ const { createCart } = require("../carts-dal");
 const yup = require("yup");
 const { id, param_id } = require("../utils/validations");
 const { createMeReview } = require("../reviews-dal");
+const { updateFloorAverageRating } = require("../floors-dal");
+const { updateCard } = require("../stripe");
+const { findByPk: findUserByPk } = require("../users-api/users-dal");
 
 let mil_type_schema = yup.number().integer().positive().required()
 
 app.use(allowCrossDomain)
 
+app.patch("/me/update_card", [
+    jwtRequired, multipleAuth([ passBusinessFromJWT, passUserOrGuestFromJWT ]),
+    validateRequest(
+        yup.object().shape({
+            requestBody: yup.object().shape({
+                stripe_token: yup.string().required()
+            })
+        })
+    )
+], async (req,res) => {
+    let user = req.user;
+    if (!user) user = await findUserByPk(req.business.UserId);
+    let { customer_id } = user;
+    let { stripe_token } = req.body;
+    await updateCard({ customer_id, stripe_token })
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { success: true }
+    })
+})
+
 app.get("/me/cart", [
     jwtRequired, multipleAuth([passBusinessFromJWT, passUserOrGuestFromJWT])
 ], async (req,res) => {
-    let cart = await getUserActiveCart({ 
+    let cart = await getUserActiveCart({
         UserId: req.business ? req.business.UserId : req.user.id, 
     });
     if (!cart) cart = await createCart({
@@ -87,7 +112,6 @@ app.post("/me/cart/add/floor_boxes", [
         requestBody: yup.object().shape({
             mil_type: mil_type_schema,
             FloorId: id.required(),
-            FloorTileSizeId: id.required(),
             boxes_amount: id.required(),
         })
     }))
@@ -109,7 +133,6 @@ app.post("/me/cart/remove/floor_boxes", [
         requestBody: yup.object().shape({
             mil_type: mil_type_schema,
             FloorId: id.required(),
-            FloorTileSizeId: id.required(),
             boxes_amount: id.required(),
         })
     }))

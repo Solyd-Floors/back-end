@@ -21,6 +21,24 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         },
+        plank_dimension_width: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        plank_dimension_height: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        cached_avg_rating: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        },
+        cached_total_reviews_len: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        },
         __typename: {
             type: DataTypes.VIRTUAL,
             get: function(val){
@@ -34,11 +52,6 @@ module.exports = (sequelize, DataTypes) => {
         Floor.belongsTo(models.FloorType, { foreignKey: { allowNull: false } })
         Floor.belongsTo(models.Color, { foreignKey: { allowNull: false } })
         Floor.belongsTo(models.User, { foreignKey: { allowNull: false } })
-        Floor.belongsToMany(models.FloorTileSize, { 
-            // foreignKey: { allowNull: false },
-            through: models.FloorFloorTileSize ,
-            foreignKey: "FloorId"
-        })
     }
     
     return Floor;

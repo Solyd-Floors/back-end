@@ -9,10 +9,10 @@ module.exports = {
         console.log({mil_type, FloorId, boxes_amount})
         let floor_boxes = await FloorBox.findAll({ where: { mil_type, FloorId }, limit: boxes_amount})
         console.log({floor_boxes})
-        let prices = floor_boxes.map(x => x.price);
-        let total_price = prices.length ? prices.reduce((a,b) => Number(a) + Number(b)) : 0 
+        let prices = floor_boxes.map(x => x.price_per_square_foot);
+        let total_price = (prices[0] * 23.4) * boxes_amount
         if (floor_boxes.length < boxes_amount) cart_floor_item_instance.not_available = true;
-        console.log({total_price})
+        cart_floor_item_instance.price_per_square_foot = prices[0]
         return { ...cart_floor_item_instance, total_price};
     }
 }

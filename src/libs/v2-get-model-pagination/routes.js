@@ -3,7 +3,7 @@ const {
     Business, Cart, CartChangeLog,
     CartFloorItem, Color, Contact,
     Country, Employee, Floor, FloorBox,
-    FloorCategory, FloorFloorTileSize,
+    FloorCategory,
     FloorType, Industry, Installation,
     Installer, Invoice, Order, OrderStatusChangeLog,
     ShipToAddress, TeamMember, User, Video
@@ -53,10 +53,6 @@ module.exports = [
     {
         path: "/floor_categories",
         model: FloorCategory
-    },
-    {
-        path: "/floor_floor_tile_sizes",
-        model: FloorFloorTileSize
     },
     {
         path: "/floor_types",
