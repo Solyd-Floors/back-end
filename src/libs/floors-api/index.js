@@ -157,7 +157,6 @@ app.post("/floors", [
             FloorCategoryId: positive_integer_as_string.required(),
             FloorTypeId: positive_integer_as_string.required(),
             ColorId: positive_integer_as_string.required(),
-            floor_tile_sizes: yup.array().of(positive_integer_as_string.required()).required(),
             plank_dimension_width: yup.number().positive().required(),
             plank_dimension_height: yup.number().positive().required(),
         })
@@ -169,7 +168,6 @@ app.post("/floors", [
             req.files["thumbnail"].length
         ) req.files["thumbnail"] = req.body["thumbnail_url"] = await uploadFile(req.files["thumbnail"][0]);
     }
-    req.body.floor_tile_sizes = req.body.floor_tile_sizes.map(x => Number(x))
     let floor = await createFloor({
         ...req.body,
         UserId: req.user.id
