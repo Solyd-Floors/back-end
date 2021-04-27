@@ -17,7 +17,10 @@ sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, process.
     dialect: process.env.DB_DIALECT /* one of 'mysql' | 'mariadb' | 'postgres' | 'mssql' */,
     logging: true,
     dialectOptions: {
-        ssl: true
+        ssl: {
+            require: true,
+            rejectUnauthorized: false
+        }
     }
 });
 
