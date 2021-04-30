@@ -2,6 +2,10 @@
 const { Floor, FloorType, FloorCategory, User, Color, Review } = require("../../models");
 const { Op } = require("sequelize");
 const { getFloorBoxesInfo, findCheapestFloorBoxFor } = require("../floor-boxes-dal");
+const { 
+    findCheapestFloorBoxPriceFor: wooFindCheapestFloorBoxPriceFor,
+    getFloorBoxesInfo: wooGetFloorBoxesInfo
+} = require("../woocommerce");
 
 module.exports = {
     findReviewsForFloor: async FloorId => {
@@ -20,20 +24,21 @@ module.exports = {
         return reviews;
     },
     findOne: async ({floor_id, UserId, ...stock_info_args}) => {
-        let floor = await Floor.findByPkOr404(floor_id,{ 
+        let floor = await Floor.wooFindByPkOr404(floor_id,{ 
             include: [ FloorType, FloorCategory, Color ] 
         })
         // Insert User property into Floor
         floor = JSON.parse(JSON.stringify(floor))
         console.log("stock_info_args",stock_info_args)
         if (Object.keys(stock_info_args).length == 2) {
-            floor.stock_info = await getFloorBoxesInfo({ 
+            console.log(stock_info_args)
+            floor.stock_info = await wooGetFloorBoxesInfo({ 
                 FloorId: floor_id, UserId,
                 ...stock_info_args
             }) 
         }
         // mil_type, FloorId, limit, exclude_ids
-        floor.User = await User.findByPkOr404(floor.UserId)
+        // floor.User = await User.findByPkOr404(floor.UserId)
         return floor;
     },
     findAll: async (options = {}) => {
@@ -46,11 +51,11 @@ module.exports = {
             console.log(where.price_per_square_foot)
         }
         console.log(where,options)
-        let floors = await Floor.findAll({ where })
+        let floors = await Floor.wooFindAll({ where })
         floors = JSON.parse(JSON.stringify(floors));
         for (let floor of floors){
-            let cheapest_floor_box = await findCheapestFloorBoxFor({ floor_id: floor.id }) || {}
-            floor.price_per_square_foot = cheapest_floor_box.price_per_square_foot || null
+            let cheapest_floor_box_price = await wooFindCheapestFloorBoxPriceFor({ floor })
+            floor.price_per_square_foot = cheapest_floor_box_price
         }
         return floors
     },

@@ -1,6 +1,7 @@
 "use strict"
 
 const { ErrorHandler } = require("../utils/error");
+const { getFloors, findByPkOr404 } = require("../libs/woocommerce");
 
 module.exports = (sequelize, DataTypes) => {
     let options = {
@@ -47,6 +48,15 @@ module.exports = (sequelize, DataTypes) => {
         }
     }, options);
 
+    Floor.wooFindAll = async options => {
+        return await getFloors(options);
+    }
+
+    Floor.wooFindByPkOr404 = async floor_id => {
+        console.log(555)
+        return await findByPkOr404(floor_id)
+    }
+    
     Floor.associate = models => {
         Floor.belongsTo(models.FloorCategory, { foreignKey: { allowNull: false } })
         Floor.belongsTo(models.FloorType, { foreignKey: { allowNull: false } })
