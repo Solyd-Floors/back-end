@@ -1,8 +1,18 @@
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const { User } = require("../../models");
 
 module.exports = {
+    getInvoices: async ({ customer_id }) => {
+        // let invoices = []
+        const invoices = await stripe.charges.list({
+            customer: customer_id
+        })
+        // for (let invoice of invoices){
+        //     let { id, amount, status, receipt_url, created } = invoice;
+        //     let  
+        // }
+        return invoices;
+    },
     updateCard: async ({ customer_id, stripe_token }) => {
         let new_source = await stripe.customers.createSource(customer_id, { source: stripe_token })
         await stripe.customers.update(customer_id,{
@@ -44,5 +54,24 @@ module.exports = {
             customer_id
         });
         return invoices;
+    },
+    getCustomer: async ({ customer_id }) => {
+        let customer = await stripe.customers.retrieve(customer_id);
+        if (customer.default_source){
+            customer.default_source_detailed = await stripe.customers.retrieveSource(
+                customer_id,
+                customer.default_source
+            );
+        }
+        return customer;
+    },
+    chargeCustomer: async ({ order_id, customer_id, amount }) => {
+        const charge = await stripe.charges.create({
+            amount: Math.round(amount),
+            currency: 'usd',
+            customer: customer_id,
+            description: 'Order#' + order_id,
+        });
+        return charge;
     }
 }

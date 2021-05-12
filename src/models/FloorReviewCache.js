@@ -11,12 +11,12 @@ module.exports = (sequelize, DataTypes) => {
             ]
         }
     }
-    let Review = sequelize.define('Review', {
-        description: {
-            type: DataTypes.TEXT,
+    let FloorReviewCache = sequelize.define('FloorReviewCache', {
+        total_reviews_num: {
+            type: DataTypes.INTEGER,
             allowNull: false,
         },
-        value: {
+        average_rating: {
             type: DataTypes.INTEGER,
             validate: {
                 min: 0,
@@ -26,14 +26,10 @@ module.exports = (sequelize, DataTypes) => {
         },
         woo_product_id: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: false,
+            unique: true
         }
     }, options);
-
-    Review.associate = models => {
-        Review.belongsTo(models.User)
-        // Review.belongsTo(models.Floor, { foreignKey: { allowNull: false }})
-    }
     
-    return Review;
+    return FloorReviewCache;
 };

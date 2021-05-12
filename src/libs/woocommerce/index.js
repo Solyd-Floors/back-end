@@ -2,8 +2,8 @@ const WooCommerceRestApi = require("@woocommerce/woocommerce-rest-api").default;
 
 const WooCommerce = new WooCommerceRestApi({
   url: 'http://localhost:8080/solyd_floors_ecommerce',
-  consumerKey: 'ck_04ae8c241335597609850ccdcba28bb59d09d6a5',
-  consumerSecret: 'cs_b43550d777fa6d7c4f94e9612ba90d32e1da729f',
+  consumerKey: 'ck_be7de3a8b20a93f1c7f771e8a35136632622beb8',
+  consumerSecret: 'cs_3f44f5edd71153f1d5d91aaec91a6e4e330d65a0',
   version: 'wc/v3'
 });
 
@@ -23,7 +23,7 @@ let insertPlankDimensionsIntoFloor = floor => {
   floor.plank_dimensions = plank_dimensions
 }
 
-let findByPkOr404 = async floor_id => {
+let findProductByPkOr404 = async floor_id => {
   let endpoint = `products/${floor_id}`
   let { data: floor } = await WooCommerce.get(endpoint);
   await insertVariationsIntoFloor(floor)
@@ -33,6 +33,15 @@ let findByPkOr404 = async floor_id => {
 }
 
 module.exports = {
+  getCustomerOrders: async ({ woo_customer_id }) => {
+    console.log({woo_customer_id})
+    let response = await WooCommerce.get("orders",{ 
+      customer: woo_customer_id,
+      status: "processing,on-hold,completed,cancelled,refunded,failed,trash"
+    })
+    let { data: orders } = response;
+    return orders;
+  },
   "default": WooCommerce,
   WooCommerce,
   getFloors: async () => {
@@ -54,9 +63,9 @@ module.exports = {
     }
     return price || null;
   },
-  findByPkOr404,
+  findProductByPkOr404,
   getFloorBoxesInfo: async ({ FloorId, mil_type }) => {
-    let floor = await findByPkOr404(FloorId);
+    let floor = await findProductByPkOr404(FloorId);
     let variation = floor.Variations.find(x => x.attributes[0].option.split(" ")[0] == mil_type)
     let { 
       stock_quantity: boxes, 
@@ -69,5 +78,84 @@ module.exports = {
       square_feet_available,
       price_per_square_foot,
     }
+  },
+  createWooCustomer: async ({ user }) => {
+    let { email, first_name, last_name, username, address: address_1, phone } = user
+    const data = {
+      email,
+      first_name,
+      last_name,
+      username,
+      billing: {
+        first_name,
+        last_name,
+        address_1,
+        email,
+        phone
+      },
+      shipping: {
+        first_name,
+        last_name,
+        company: "",
+        address_1,
+        address_2: "",
+        city: "San Francisco",
+        state: "CA",
+      },
+      meta_data: [
+        { user_id: user.id }
+      ]
+    };
+    let { data: woo_customer } = await WooCommerce.post("customers", data)
+    console.log(woo_customer)
+    return woo_customer;
+  },
+  createPendingOrder: async ({ user }) => {
+    const data = {
+      payment_method: user.customer_id,
+      payment_method_title: "Credit Card (Stripe)",
+      customer_id: user.woo_customer_id,
+      line_items: [ ],
+    };
+    let res = await WooCommerce.post("orders", data)
+    console.log(res);
+    return res.data;
+  },
+  findOrderById: async id => {
+    let res = await WooCommerce.get("orders/" + id)
+    console.log(res.data)
+    return res.data;
+  },
+  addLineItemToOrder: async ({ woo_order, product_id, quantity, variation_id }) => {
+    let line_items = woo_order.line_items
+    line_item = { product_id, variation_id, quantity }
+    line_items.push(line_item);
+    let { data: order } = await WooCommerce.put("orders/" + woo_order.id, { line_items })
+    return order;
+  },
+  removeLineItemFromOrder: async ({ woo_order, line_item_id }) => {
+    let line_item = woo_order.line_items.find(x => x.id === line_item_id);
+    line_item.quantity = 0;
+    let line_items = woo_order.line_items.filter(
+      x => x.id !== line_item_id
+    );
+    line_items.push(line_item);
+    let { data: order } = await WooCommerce.put("orders/" + woo_order.id, { line_items })
+    return order;
+  },
+  setOrderTransactionId: async ({ order_id, transaction_id, charge }) => {
+    console.log(charge,JSON.stringify(charge))
+    let data = { 
+      transaction_id, 
+      status: "completed",
+      meta_data: [
+        {
+          key: "_stripe_charge_",
+          value: JSON.stringify(charge)
+        }
+      ]
+    }
+    let { data: order } = await WooCommerce.put("orders/" + order_id, data)
+    return order;
   }
 }

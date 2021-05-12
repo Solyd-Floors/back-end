@@ -1,8 +1,10 @@
 
 const { Cart } = require("../../models");
 const { CartFloorBox, FloorBox, CartFloorItem, Floor } = require("../../models");
+const { User } = require("../../models");
 const { ErrorHandler } = require("../../utils/error");
 const getPrice = require("../../utils/getPrice");
+const { createPendingOrder } = require("../woocommerce");
 const { getCartFloorItemWithMoreInfo } = require("./utils");
 
 module.exports = {
@@ -12,15 +14,17 @@ module.exports = {
         if (id) where.id = id
         if (EmployeeId) where.EmployeeId = EmployeeId
         if (status) where.status = status
-        console.log({where})
+        
         let cart = await Cart.findOne({
-            where, include: [ 
-                {
-                    model: CartFloorItem,
-                    include: [ Floor ]
-                }
-             ]
+            where, 
+            // include: [ 
+            //     {
+            //         model: CartFloorItem,
+            //         include: [ Floor ]
+            //     }
+            //  ]
         })
+        return cart; // woo
         if (not_json) return cart
         cart = JSON.parse(JSON.stringify(cart)) 
         if (cart && cart.CartFloorItems) {
@@ -41,9 +45,16 @@ module.exports = {
         if (
             await Cart.findOne({ where })
         ) throw new ErrorHandler(403, "Discard active cart to create a new one.")
-        return await Cart.create({ 
-            UserId, EmployeeId
+        let user = await User.findByPk(UserId);
+        let woo_order = await createPendingOrder({ user });
+        let cart = await Cart.create({ 
+            UserId, EmployeeId,
+            woo_order_id: woo_order.id
         })
+        cart = JSON.parse(JSON.stringify(cart));
+        cart.woo_order = woo_order;
+        return cart;
+
     },
     getCartWithAllItems: async ({
         CartId

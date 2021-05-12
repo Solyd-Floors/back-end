@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             defaultValue: "ACTIVE"
         },
+        woo_order_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        }
     });
 
     Cart.associate = models => {

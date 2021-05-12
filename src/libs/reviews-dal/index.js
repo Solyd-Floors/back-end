@@ -1,25 +1,31 @@
 
-const { Floor, User, Review } = require("../../models");
+const { FloorReviewCache, User, Review } = require("../../models");
 const { updateFloorAverageRating } = require("../floors-dal");
 
 module.exports = {
-    createMeReview: async ({ UserId, FloorId, value, description }) => {
-        let review = await Review.create({ UserId, FloorId, value, description })
+    createMeReview: async ({ UserId, woo_product_id, value, description }) => {
+        let review = await Review.create({ UserId, woo_product_id, value, description })
         review = JSON.parse(JSON.stringify(review));
         review.User = User.findByPk(review.UserId);
 
-        let reviews = await Review.findAll({ where: { FloorId }});
-        let floor = await Floor.findOne({ where: { id: FloorId }});
-        
+        let reviews = await Review.findAll({ where: { woo_product_id }});
+        let floor_review_cache = await FloorReviewCache.findOne({ where: { woo_product_id }});
+        if (!floor_review_cache) {
+            floor_review_cache = await FloorReviewCache.create({
+                total_reviews_num: 0,
+                average_rating: 0,
+                woo_product_id
+            })
+        }
         const ratings = reviews.map(review => review.value)
         const ratings_sum = ratings.reduce((a, b) => a + b, 0);
         const avg_rating = (ratings_sum / ratings.length) || 0;
         console.log({ratings,ratings_sum, avg_rating})
         
-        floor.cached_total_reviews_len = reviews.length;
-        floor.cached_avg_rating = Number(avg_rating);
+        floor_review_cache.total_reviews_num = reviews.length;
+        floor_review_cache.average_rating = Number(avg_rating);
         
-        await floor.save()
+        await floor_review_cache.save()
         review.User = await review.User
         
         return review;

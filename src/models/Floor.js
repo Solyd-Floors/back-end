@@ -1,7 +1,7 @@
 "use strict"
 
 const { ErrorHandler } = require("../utils/error");
-const { getFloors, findByPkOr404 } = require("../libs/woocommerce");
+const { getFloors, findProductByPkOr404 } = require("../libs/woocommerce");
 
 module.exports = (sequelize, DataTypes) => {
     let options = {
@@ -54,7 +54,7 @@ module.exports = (sequelize, DataTypes) => {
 
     Floor.wooFindByPkOr404 = async floor_id => {
         console.log(555)
-        return await findByPkOr404(floor_id)
+        return await findProductByPkOr404(floor_id)
     }
     
     Floor.associate = models => {

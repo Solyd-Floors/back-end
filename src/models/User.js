@@ -51,6 +51,9 @@ module.exports = (sequelize, DataTypes) => {
         customer_id: { 
             type: DataTypes.STRING
         },
+        woo_customer_id: {
+            type: DataTypes.INTEGER,
+        },
         isAdmin: {
             type: DataTypes.BOOLEAN,
             defaultValue: true,

@@ -22,7 +22,10 @@ const {
     removeItemFromCart,
     checkoutMyCart,
     findOrder,
-    cancelOrder
+    cancelOrder,
+    addBoxesToCart3,
+    getInvoices,
+    getOrders
 } = require("./me-dal");
 const {
     getUserActiveCart, 
@@ -35,7 +38,8 @@ const { id, param_id } = require("../utils/validations");
 const { createMeReview } = require("../reviews-dal");
 const { updateFloorAverageRating } = require("../floors-dal");
 const { updateCard } = require("../stripe");
-const { findByPk: findUserByPk } = require("../users-api/users-dal");
+const { findByPk: findUserByPk, updateUser } = require("../users-api/users-dal");
+const { getCustomerOders } = require("../woocommerce");
 
 let mil_type_schema = yup.number().integer().positive().required()
 
@@ -63,6 +67,35 @@ app.patch("/me/update_card", [
     })
 })
 
+app.post("/me/checkout/guest_to_standard_user", [
+    jwtRequired, passUserOrGuestFromJWT,
+    validateRequest(
+        yup.object().shape({
+            requestBody: yup.object().shape({
+                email: yup.string().email().required(),
+                password: yup.string().required(),
+                first_name: yup.string().required(),
+                last_name: yup.string().required(),
+                phone: yup.string(),
+                address: yup.string().required(),
+            })
+        })
+    )
+], async (req,res) => {
+    let user = await updateUser({
+        pk: req.user.id,
+        data: {
+            ...req.body,
+            isGuest: false
+        }
+    })
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { user }
+    })
+})
+
 app.get("/me/cart", [
     jwtRequired, multipleAuth([passBusinessFromJWT, passUserOrGuestFromJWT])
 ], async (req,res) => {
@@ -76,6 +109,20 @@ app.get("/me/cart", [
         code: 200,
         message: "success",
         data: { cart }
+    })
+})
+
+app.get("/me/invoices", [
+    jwtRequired, multipleAuth([ passBusinessFromJWT, passUserOrGuestFromJWT ])
+], async (req,res) => {
+    let user = req.business ? req.business.User : req.user
+    console.log(user,user.customer_id)
+    let { customer_id, woo_customer_id } = user;
+    let invoices = await getInvoices({ woo_customer_id })
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { invoices } 
     })
 })
 
@@ -113,10 +160,11 @@ app.post("/me/cart/add/floor_boxes", [
             mil_type: mil_type_schema,
             FloorId: id.required(),
             boxes_amount: id.required(),
+            variation_id: id.required(),
         })
     }))
 ], async (req,res) => {
-    let cart = await addBoxesToCart2({
+    let cart = await addBoxesToCart3({
         UserId: req.business ? req.business.UserId : req.user.id, 
         ...req.body
     });
@@ -152,7 +200,7 @@ app.post("/me/cart/remove/item", [
     jwtRequired, multipleAuth([passBusinessFromJWT, passUserOrGuestFromJWT]),
     validateRequest(yup.object().shape({
         requestBody: yup.object().shape({
-            CartFloorItemId: id.required()
+            line_item_id: id.required()
         })
     }))
 ], async (req,res) => {
@@ -168,15 +216,29 @@ app.post("/me/cart/remove/item", [
 })
 
 app.post("/me/cart/checkout", [
-    jwtRequired, passBusinessFromJWT
+    jwtRequired, multipleAuth([passBusinessFromJWT, passUserOrGuestFromJWT])
 ], async (req,res) => {
-    let order = await checkoutMyCart({
-        UserId: req.business.UserId
-    })
+    let UserId = req.business ? req.business.UserId : req.user.id
+    let order = await checkoutMyCart({ UserId })
     return res.json({
         code: 201,
         message: "success",
         data: { order }
+    })
+})
+
+app.get("/me/orders", [
+    jwtRequired, multipleAuth([passBusinessFromJWT, passUserOrGuestFromJWT]),
+], async (req,res) => {
+    let user = req.business ? req.business.User : req.user
+    let { customer_id, woo_customer_id } = user;
+    let orders = await getOrders({
+        woo_customer_id
+    })
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { orders }
     })
 })
 
@@ -224,7 +286,7 @@ app.post("/me/review/floor/:floor_id", [
     let { floor_id: FloorId } = req.params;
     console.log(req.params)
     let review = await createMeReview({
-        UserId, FloorId, ...req.body
+        UserId, woo_product_id: FloorId, ...req.body
     })
     return res.json({
         code: 200,

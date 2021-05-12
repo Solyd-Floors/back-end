@@ -1,5 +1,5 @@
 
-const { Floor, FloorType, FloorCategory, User, Color, Review } = require("../../models");
+const { Floor,FloorReviewCache, FloorType, FloorCategory, User, Color, Review } = require("../../models");
 const { Op } = require("sequelize");
 const { getFloorBoxesInfo, findCheapestFloorBoxFor } = require("../floor-boxes-dal");
 const { 
@@ -9,7 +9,7 @@ const {
 
 module.exports = {
     findReviewsForFloor: async FloorId => {
-        let reviews = await Review.findAll({ where: { FloorId } });
+        let reviews = await Review.findAll({ where: { woo_product_id: FloorId } });
         reviews = JSON.parse(JSON.stringify(reviews));
         let ops = []
         for (let review of reviews){
@@ -37,6 +37,11 @@ module.exports = {
                 ...stock_info_args
             }) 
         }
+        let cheapest_floor_box_price = await wooFindCheapestFloorBoxPriceFor({ floor })
+        floor.price_per_square_foot = cheapest_floor_box_price
+        let floor_review_cache = await FloorReviewCache.findOne({ where: { woo_product_id: floor.id }});
+        floor.cached_avg_rating = floor_review_cache.average_rating;
+
         // mil_type, FloorId, limit, exclude_ids
         // floor.User = await User.findByPkOr404(floor.UserId)
         return floor;
@@ -56,6 +61,8 @@ module.exports = {
         for (let floor of floors){
             let cheapest_floor_box_price = await wooFindCheapestFloorBoxPriceFor({ floor })
             floor.price_per_square_foot = cheapest_floor_box_price
+            let floor_review_cache = await FloorReviewCache.findOne({ where: { woo_product_id: floor.id }});
+            floor.cached_avg_rating = floor_review_cache.average_rating;
         }
         return floors
     },
