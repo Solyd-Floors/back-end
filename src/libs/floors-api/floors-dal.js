@@ -40,7 +40,7 @@ module.exports = {
         let cheapest_floor_box_price = await wooFindCheapestFloorBoxPriceFor({ floor })
         floor.price_per_square_foot = cheapest_floor_box_price
         let floor_review_cache = await FloorReviewCache.findOne({ where: { woo_product_id: floor.id }});
-        floor.cached_avg_rating = floor_review_cache.average_rating;
+        floor.cached_avg_rating = floor_review_cache ? floor_review_cache.average_rating : 0;
 
         // mil_type, FloorId, limit, exclude_ids
         // floor.User = await User.findByPkOr404(floor.UserId)
@@ -62,7 +62,7 @@ module.exports = {
             let cheapest_floor_box_price = await wooFindCheapestFloorBoxPriceFor({ floor })
             floor.price_per_square_foot = cheapest_floor_box_price
             let floor_review_cache = await FloorReviewCache.findOne({ where: { woo_product_id: floor.id }});
-            floor.cached_avg_rating = floor_review_cache.average_rating;
+            floor.cached_avg_rating = floor_review_cache ? floor_review_cache.average_rating : 0;
         }
         return floors
     },

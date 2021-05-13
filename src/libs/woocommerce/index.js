@@ -1,9 +1,9 @@
 const WooCommerceRestApi = require("@woocommerce/woocommerce-rest-api").default;
 
 const WooCommerce = new WooCommerceRestApi({
-  url: 'http://localhost:8080/solyd_floors_ecommerce',
-  consumerKey: 'ck_be7de3a8b20a93f1c7f771e8a35136632622beb8',
-  consumerSecret: 'cs_3f44f5edd71153f1d5d91aaec91a6e4e330d65a0',
+  url: process.env.WOO_COMMERCE_URL || 'http://localhost:8080/solyd_floors_ecommerce',
+  consumerKey: process.env.WOO_CONSTUMER_KEY || 'ck_be7de3a8b20a93f1c7f771e8a35136632622beb8',
+  consumerSecret: process.env.WOO_CONSTUMER_SECRET || 'cs_3f44f5edd71153f1d5d91aaec91a6e4e330d65a0',
   version: 'wc/v3'
 });
 
@@ -15,7 +15,7 @@ let insertVariationsIntoFloor = async floor => {
 
 let insertThumbnailIntoFloor = floor => {
   let default_image = floor.images[0]
-  floor.thumbnail_url = default_image.src || null
+  floor.thumbnail_url = default_image && default_image.src || null
 }
 
 let insertPlankDimensionsIntoFloor = floor => {
