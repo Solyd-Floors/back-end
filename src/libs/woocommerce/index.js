@@ -87,17 +87,17 @@ module.exports = {
       last_name,
       username,
       billing: {
-        first_name,
-        last_name,
-        address_1,
-        email,
-        phone
+        first_name: String(first_name),
+        last_name: String(first_name),
+        address_1: String(address_1),
+        email: String(email),
+        phone: String(phone)
       },
       shipping: {
-        first_name,
-        last_name,
+        first_name: String(first_name),
+        last_name: String(last_name),
         company: "",
-        address_1,
+        address_1: String(address_1),
         address_2: "",
         city: "San Francisco",
         state: "CA",
