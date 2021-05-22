@@ -46,7 +46,7 @@ module.exports = {
   "default": WooCommerce,
   WooCommerce,
   getFloors: async () => {
-    let response = await WooCommerce.get("products")
+    let response = await WooCommerce.get("products", { per_page: 100 })
     let { data: floors } = response;
     for (let floor of floors){
       await insertVariationsIntoFloor(floor)
