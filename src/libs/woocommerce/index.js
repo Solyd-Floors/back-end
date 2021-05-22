@@ -45,8 +45,17 @@ module.exports = {
   },
   "default": WooCommerce,
   WooCommerce,
-  getFloors: async () => {
-    let response = await WooCommerce.get("products", { per_page: 100 })
+  getTotalFloorPages: async () => {
+    let response = await WooCommerce.get("reports/products/totals");
+    let { data: product_totals } = response;
+    console.log(product_totals,response)
+    let total = product_totals.find(x => x.name == "Variable product").total
+    let total_str = String(total)
+    if (total_str[total_str.length-1] == "0") return total / 10;
+    else return Number(total_str[0]) + 1
+  },
+  getFloors: async ({ page }) => {
+    let response = await WooCommerce.get("products", { per_page: 10, page: page || 1 })
     let { data: floors } = response;
     for (let floor of floors){
       await insertVariationsIntoFloor(floor)

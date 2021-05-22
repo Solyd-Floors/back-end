@@ -23,8 +23,20 @@ const uploadMiddleware = upload.fields([
 
 const yup = require("yup");
 const { param_id, positive_integer_as_string } = require("../utils/validations");
+const { getTotalFloorPages } = require("../woocommerce");
 
 app.use(allowCrossDomain)
+
+app.get("/floors/total_pages", [
+
+], async (req,res) => {
+    let total_pages = await getTotalFloorPages()
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { value: total_pages }
+    })
+})
 
 app.get("/floors/:floor_id",[
     validateRequest(yup.object().shape({
@@ -82,7 +94,8 @@ app.get("/floors", [
                 is: val => Boolean(val), // alternatively: (val) => val == true
                 then: yup.number().required(),
                 otherwise: yup.number(),
-            })
+            }),
+            page: param_id
         })
     }))
 ], async (req,res) => {

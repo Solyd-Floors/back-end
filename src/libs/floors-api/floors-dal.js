@@ -56,7 +56,7 @@ module.exports = {
             console.log(where.price_per_square_foot)
         }
         console.log(where,options)
-        let floors = await Floor.wooFindAll({ where })
+        let floors = await Floor.wooFindAll({ where, page: options.page })
         floors = JSON.parse(JSON.stringify(floors));
         for (let floor of floors){
             let cheapest_floor_box_price = await wooFindCheapestFloorBoxPriceFor({ floor })
