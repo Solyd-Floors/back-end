@@ -21,6 +21,7 @@ const email_manager = require("../email-manager");
 
 const yup = require("yup");
 const { email, password } = require("../utils/validations");
+const { sendEmail } = require("../email-manager");
 
 app.use(allowCrossDomain)
 
@@ -147,8 +148,8 @@ app.patch("/users/:user_id", [
         requestBody: yup.object().shape({
             email: email,
             password: password,
-            first_name: yup.string().min(5),
-            last_name: yup.string().min(5),
+            first_name: yup.string().min(2),
+            last_name: yup.string().min(2),
             phone: yup.string(),
             address: yup.string(),
         })
@@ -171,13 +172,19 @@ app.post("/users", validateRequest(yup.object().shape({
     requestBody: yup.object().shape({
         email: email.required(),
         password: password.required(),
-        first_name: yup.string().required().min(5),
-        last_name: yup.string().required().min(5),
+        first_name: yup.string().required().min(2),
+        last_name: yup.string().required().min(2),
         phone: yup.string(),
         address: yup.string(),
     })
 })), async (req, res) => {
     let user = await createUser(req.body);
+    sendEmail({
+        to: user.email,
+        subject: `Welcome ${user.first_name} ${user.last_name}! You have signed up successfully on Solyd Floors.`,
+        text: `Welcome ${user.first_name} ${user.last_name}! You have signed up successfully on Solyd Floors.`,
+        html: `Welcome ${user.first_name} ${user.last_name}! You have signed up successfully on Solyd Floors.`,
+    })
     return res.json({
         message: "success",
         code: 201,
@@ -191,8 +198,8 @@ app.post("/users/unrestricted", [
         requestBody: yup.object().shape({
             email: email.required(),
             password: password.required(),
-            first_name: yup.string().required().min(5),
-            last_name: yup.string().required().min(5),
+            first_name: yup.string().required().min(2),
+            last_name: yup.string().required().min(2),
             phone: yup.string(),
             address: yup.string(),
         })
