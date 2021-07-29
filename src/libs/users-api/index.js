@@ -25,6 +25,13 @@ const { sendEmail } = require("../email-manager");
 
 app.use(allowCrossDomain)
 
+const multer = require("multer")
+const upload = multer();
+const uploadMiddleware = upload.fields([
+    { name: 'picture_image', maxCount: 1 },
+])
+
+
 app.post("/users/send_verification_link", validateRequest(yup.object().shape({
     requestBody: yup.object().shape({
         email: yup.string().email().required()
@@ -141,6 +148,7 @@ app.delete("/users/:user_id", [
 
 app.patch("/users/:user_id", [
     jwtRequired, passUserFromJWT, adminRequired,
+    uploadMiddleware,
     validateRequest(yup.object().shape({
         params: yup.object().shape({
             user_id: yup.string().test("is-number", val => !isNaN(Number(val)))
@@ -153,12 +161,20 @@ app.patch("/users/:user_id", [
             phone: yup.string(),
             address: yup.string(),
         })
-    }))
+    })),
 ], async (req,res) => {
-    let user = await updateUser({
+    let args = {
         pk: req.params.user_id,
         data: req.body
-    })
+    }
+    let files = {}
+    if (req.files) {
+        if (
+            req.files["picture_image"] &&
+            req.files["picture_image"].length
+        ) files["picture_image"] = args.data["picture_image"] = req.files["picture_image"][0];
+    }
+    let user = await updateUser(args)
     user = JSON.parse(JSON.stringify(user))
     user.password = null;
     return res.json({
@@ -178,7 +194,15 @@ app.post("/users", validateRequest(yup.object().shape({
         address: yup.string(),
     })
 })), async (req, res) => {
-    let user = await createUser(req.body);
+    let args = { ...req.body }
+    let files = {}
+    if (req.files) {
+        if (
+            req.files["picture_image"] &&
+            req.files["picture_image"].length
+        ) files["picture_image"] = args["picture_image"] = req.files["picture_image"][0];
+    }
+    let user = await createUser(args);
     sendEmail({
         to: user.email,
         subject: `Welcome ${user.first_name} ${user.last_name}! You have signed up successfully on Solyd Floors.`,

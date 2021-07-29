@@ -10,7 +10,8 @@ const {
     passUserOrGuestFromJWT, 
     adminRequired,
     passBusinessFromJWT,
-    multipleAuth
+    multipleAuth,
+    passUserFromJWT
 } = require("../../middlewares");
 
 const { 
@@ -34,16 +35,58 @@ const { ErrorHandler } = require("../../utils/error");
 const { createCart } = require("../carts-dal");
 
 const yup = require("yup");
-const { id, param_id } = require("../utils/validations");
+const { id, param_id, email, password } = require("../utils/validations");
 const { createMeReview } = require("../reviews-dal");
 const { updateFloorAverageRating } = require("../floors-dal");
 const { updateCard } = require("../stripe");
 const { findByPk: findUserByPk, updateUser } = require("../users-api/users-dal");
 const { getCustomerOders } = require("../woocommerce");
 
+const multer = require("multer")
+const upload = multer();
+const uploadMiddleware = upload.fields([
+    { name: 'picture_image', maxCount: 1 },
+])
+
 let mil_type_schema = yup.number().integer().positive().required()
 
 app.use(allowCrossDomain)
+
+app.patch("/me", [
+    jwtRequired, multipleAuth([ passBusinessFromJWT, passUserFromJWT ]),
+    uploadMiddleware,
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            email,
+            password,
+            first_name: yup.string().min(2),
+            last_name: yup.string().min(2),
+            phone: yup.string(),
+            address: yup.string(),
+        })
+    }))
+], async (req,res) => {
+    let args = {
+        pk: req.user.id,
+        data: req.body
+    }
+    let files = {}
+    if (req.files) {
+        if (
+            req.files["picture_image"] &&
+            req.files["picture_image"].length
+        ) files["picture_image"] = args.data["picture_image"] = req.files["picture_image"][0];
+    }
+    let user = await updateUser(args)
+    user = JSON.parse(JSON.stringify(user))
+    user.password = null;
+    return res.json({
+        message: "success",
+        code: 200,
+        data: { user }
+    })
+})
+
 
 app.patch("/me/update_card", [
     jwtRequired, multipleAuth([ passBusinessFromJWT, passUserOrGuestFromJWT ]),

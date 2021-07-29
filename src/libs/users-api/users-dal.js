@@ -8,6 +8,7 @@ const bcrypt = require("bcrypt");
 const { ErrorHandler } = require("../../utils/error");
 const { createCustomer } = require("../stripe");
 const { linkWooCommerceAndStripe } = require("../users-dal");
+const uploadFile = require("../aws/uploadFile");
 
 //  TODO: On Stripe fail, handle it
 module.exports = {
@@ -19,21 +20,26 @@ module.exports = {
         return true;
     },
     createUser: async ({
-        email, first_name, last_name, phone, address, password
+        email, first_name, last_name, phone, address, password, picture_image
     }) => {
-        let user = await User.create({
+        const args = {
             first_name, last_name, phone, address, email, 
             password: await bcrypt.hash(password, SALT_ROUNDS), points: 0, 
-        })
+        }
+        if (picture_image) args.picture_url = await uploadFile(picture_image)
+
+        let user = await User.create(args)
         user = await linkWooCommerceAndStripe({ user })
         return user;
     },
     createUserUnrestricted: async ({
         first_name, last_name, phone, address,
-        email, password
+        email, password, picture_image
     }) => {
         let args = { first_name, last_name, phone, address, email }
         if (password) args.password = await bcrypt.hash(password, SALT_ROUNDS)
+        if (picture_image) args.picture_url = await uploadFile(picture_image)
+
         let user = await User.create(args)
         user = await linkWooCommerceAndStripe({ user })
         return user; 
@@ -42,7 +48,11 @@ module.exports = {
         let keys = Object.keys(data);
         let user = await User.findByPk(pk);
         for (let key of keys){
-            user[key] = key === "password" ? await bcrypt.hash(data[key], SALT_ROUNDS) : data[key]
+            if (key === 'picture_image'){
+                user.picture_url = await uploadFile(data[key])
+            } else {
+                user[key] = key === "password" ? await bcrypt.hash(data[key], SALT_ROUNDS) : data[key]
+            }
         }
         await user.save();
         return user;

@@ -40,6 +40,9 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         },
+        picture_url: {
+            type: DataTypes.TEXT,
+        },
         phone: {
             type: DataTypes.STRING,
             allowNull: true
