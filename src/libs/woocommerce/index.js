@@ -15,7 +15,7 @@ let insertVariationsIntoFloor = async floor => {
 
 let insertThumbnailIntoFloor = floor => {
   let default_image = floor.images[0]
-  floor.thumbnail_url = default_image && default_image.src || null
+  floor.thumbnail_url = default_image && default_image.guid || null
   if (!floor.thumbnail_url) floor.thumbnail_url = "https://sf-front.herokuapp.com/woocommerce-placeholder-300x300.png"
 }
 
@@ -54,8 +54,9 @@ module.exports = {
     if (total_str[total_str.length-1] == "0") return total / 10;
     else return Number(total_str[0]) + 1
   },
-  getFloors: async ({ page }) => {
-    let response = await WooCommerce.get("products", { per_page: 10, page: page || 1 })
+  getFloors: async options => {
+    console.log("WOOO",options)
+    let response = await WooCommerce.get("products", { per_page: 10, page: 1, ...options })
     let { data: floors } = response;
     for (let floor of floors){
       await insertVariationsIntoFloor(floor)

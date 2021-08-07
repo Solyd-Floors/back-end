@@ -2,6 +2,7 @@
 
 const { ErrorHandler } = require("../utils/error");
 const { getFloors, findProductByPkOr404 } = require("../libs/woocommerce");
+const wp_floors = require("../libs/wordpress-db/floors")
 
 module.exports = (sequelize, DataTypes) => {
     let options = {
@@ -49,7 +50,8 @@ module.exports = (sequelize, DataTypes) => {
     }, options);
 
     Floor.wooFindAll = async options => {
-        return await getFloors(options);
+        return await wp_floors.findAll(options)
+        // return await getFloors(options); //deprecated
     }
 
     Floor.wooFindByPkOr404 = async floor_id => {

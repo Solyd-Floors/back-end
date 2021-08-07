@@ -50,13 +50,17 @@ module.exports = {
         let where = {}
         let relations = ["ColorId", "FloorCategoryId", "FloorTypeId"]
         relations.map(field_name => options[field_name] ? where[field_name] = Number(options[field_name]) : null)
-        if (options.query) where = { ...where, [Op.or]: [ { "name": { [Op.like]: '%' + options.query + '%' } } ] }
+        // if (options.query) where = { ...where, [Op.or]: [ { "name": { [Op.like]: '%' + options.query + '%' } } ] }
+        if (options.query) where.query = options.query
+        if (options.FloorTypeSlug) where.FloorTypeSlug = options.FloorTypeSlug
         if (options.min_price !== undefined && options.max_price !== undefined) {
-            where.price_per_square_foot = { [Op.between]: [ options.min_price, options.max_price ] }
-            console.log(where.price_per_square_foot)
+            // where.price_per_square_foot = { [Op.between]: [ options.min_price, options.max_price ] }
+            where.min_price = options.min_price
+            where.max_price = options.max_price
         }
+        if (options.page) where.page = options.page
         console.log(where,options)
-        let floors = await Floor.wooFindAll({ where, page: options.page })
+        let floors = await Floor.wooFindAll(where)
         floors = JSON.parse(JSON.stringify(floors));
         for (let floor of floors){
             let cheapest_floor_box_price = await wooFindCheapestFloorBoxPriceFor({ floor })

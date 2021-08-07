@@ -87,7 +87,7 @@ app.get("/floors", [
         query: yup.object().shape({
             FloorCategoryId: param_id,
             ColorId: param_id,
-            FloorTypeId: param_id,
+            FloorTypeSlug: yup.string(),
             query: yup.string(),
             min_price: yup.number(),
             max_price: yup.number().when('min_price', {
@@ -116,7 +116,7 @@ app.patch("/floors/:floor_id", [
             name: yup.string(),
             description: yup.string(),
             FloorCategoryId: positive_integer_as_string,
-            FloorTypeId: positive_integer_as_string,
+            FloorTypeSlug: positive_integer_as_string,
             ColorId: positive_integer_as_string,
             plank_dimension_width: param_id.required(),
             plank_dimension_height: param_id.required(),
@@ -168,7 +168,7 @@ app.post("/floors", [
             name: yup.string().required(),
             description: yup.string().required(),
             FloorCategoryId: positive_integer_as_string.required(),
-            FloorTypeId: positive_integer_as_string.required(),
+            FloorTypeSlug: positive_integer_as_string.required(),
             ColorId: positive_integer_as_string.required(),
             plank_dimension_width: yup.number().positive().required(),
             plank_dimension_height: yup.number().positive().required(),

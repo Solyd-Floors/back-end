@@ -4,7 +4,7 @@ require('express-async-errors');
 
 const models = require("./models")
 
-models.sequelize.sync({ alter: true || process.env.RESET_DB_FORCE });
+models.sequelize.sync({ alter: false || process.env.RESET_DB_FORCE });
 
 const http = require('http');
 const express = require('express')
@@ -45,9 +45,11 @@ const carts_api = require("./libs/carts-api")
 const orders_api = require("./libs/orders-api")
 const general_api = require("./libs/general-api")
 const inventory_api = require("./libs/inventory-api")
+// const wordpress_api = require("./libs/wordpress-api")
 
 docs_collector.generateSwaggerDocument()
 const api_docs = require("./libs/api-docs");
+
 
 const app = express();
 const server = http.createServer(app)
@@ -98,6 +100,7 @@ app.use(V1_PATHNAME_PREFIX, inventory_api);
 app.use(V1_PATHNAME_PREFIX, my_business_api);
 app.use(V1_PATHNAME_PREFIX, api_docs)
 app.use(V1_PATHNAME_PREFIX, general_api);
+// app.use(V1_PATHNAME_PREFIX, wordpress_api);
 
 
 app.get("/test", async (req,res) => {
