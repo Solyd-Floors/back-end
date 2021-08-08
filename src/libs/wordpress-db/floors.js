@@ -1,6 +1,6 @@
 
+const { findCheapestFloorBoxPriceFor } = require("../woocommerce");
 const wp_db = require("./index");
-
 
 let sf_insertThumbnailIntoFloor = floor => {
     let default_image = floor.images[0]
@@ -77,7 +77,7 @@ const findTerms = async post_id => {
     return relations;
 }
 
-const filterFloors = async ({ FloorCategoryId, FloorTypeSlug, ...rest }, floors) => {
+const filterFloors = async ({ FloorCategoryId, FloorTypeSlug, Color, min_price, max_price }, floors) => {
     if (FloorCategoryId){
         floors = floors.filter(floor => {
             const category_term = floor.terms.find(t => {
@@ -104,12 +104,38 @@ const filterFloors = async ({ FloorCategoryId, FloorTypeSlug, ...rest }, floors)
             return Boolean(category_term)
         })
     }
-    console.log("FILTERING WITH", { FloorCategoryId, FloorTypeSlug, rest })
+    if (Color){
+        floors = floors.filter(floor => {
+            const category_term = floor.terms.find(t => {
+                const [taxonomy,term] = t
+                if (
+                    taxonomy.taxonomy === 'pa_color' &&
+                    term.slug == Color
+                ) return true
+                return false
+            })
+            return Boolean(category_term)
+        })
+    }
+    if (min_price !== undefined && max_price !== undefined) {
+        floors = floors.filter(floor => {
+            const price = findCheapestFloorBoxPriceFor({ floor })
+            console.log({price,min_price,max_price})
+            return price > min_price && price < max_price;
+        })
+    }
+    console.log("FILTERING WITH", { FloorCategoryId, FloorTypeSlug, Color })
     return floors;
 }
 
+let insertPlankDimensionsIntoFloor = floor => {
+    let plank_dimensions = floor.attributes.find(x => x.name === "Plank dimensions").options[0]
+    floor.plank_dimensions = plank_dimensions
+  }
+
 const _wp_to_sf = wp_floor => {
     wp_floor.name = wp_floor.post_title
+    // insertPlankDimensionsIntoFloor(wp_floor)
     return wp_floor
 }
 const wp_to_sf = data => {
@@ -123,7 +149,11 @@ const wp_to_sf = data => {
 module.exports = {
     findAll: async (options) => {
         console.log({options})
-        const querySearch = options.query ? ` and post_title LIKE '%${options.query}%'` : ''
+        let querySearch = options.query ? ` and post_title LIKE '%${options.query}%'` : ''
+        if (options.id){
+            let q = `ID=${options.id}`
+            querySearch = querySearch ? `${querySearch} and  ${q}` : ` and  ${q}`
+        }
         const query = `
             select * from wp_posts where post_type='product' ${querySearch};
         `
@@ -142,6 +172,7 @@ module.exports = {
                 variation.images = await findAttachments(variation.id)
                 sf_insertThumbnailIntoFloor(variation)
                 variation.meta = await findMetas(variation.id)
+                variation.price = variation.meta._price
     
             }
             
@@ -154,6 +185,7 @@ module.exports = {
             row.images = await findAttachments(row.id)
             sf_insertThumbnailIntoFloor(row)
             row.meta = await findMetas(row.id)
+            row.price = row.meta._price
         }
         // const filtered_rows = JSON.parse(JSON.stringify(rows))
         rows = await filterFloors(options,rows)

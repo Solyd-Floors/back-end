@@ -53,6 +53,7 @@ module.exports = {
         // if (options.query) where = { ...where, [Op.or]: [ { "name": { [Op.like]: '%' + options.query + '%' } } ] }
         if (options.query) where.query = options.query
         if (options.FloorTypeSlug) where.FloorTypeSlug = options.FloorTypeSlug
+        if (options.Color) where.Color = options.Color
         if (options.min_price !== undefined && options.max_price !== undefined) {
             // where.price_per_square_foot = { [Op.between]: [ options.min_price, options.max_price ] }
             where.min_price = options.min_price

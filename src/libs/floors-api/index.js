@@ -88,6 +88,7 @@ app.get("/floors", [
             FloorCategoryId: param_id,
             ColorId: param_id,
             FloorTypeSlug: yup.string(),
+            Color: yup.string(),
             query: yup.string(),
             min_price: yup.number(),
             max_price: yup.number().when('min_price', {

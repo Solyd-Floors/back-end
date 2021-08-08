@@ -65,7 +65,7 @@ module.exports = {
     }
     return floors;
   },
-  findCheapestFloorBoxPriceFor: async ({ floor }) => {
+  findCheapestFloorBoxPriceFor: ({ floor }) => {
     let { Variations: variations } = floor;
     let price;
     for (let variation of variations){
