@@ -52,7 +52,7 @@ app.post("/users/send_verification_link", validateRequest(yup.object().shape({
         }
         else throw err
     }
-    let emailData = email_manager.createForgetPasswordEmail({ to: email, code })
+    let emailData = email_manager.createForgetPasswordEmail({ to: email, code, forget_password_token })
     email_manager.sendEmail(emailData);
     console.log("Valid for 5 hours, Your code is: ", code)
     console.log("DEV: token is: ", forget_password_token)

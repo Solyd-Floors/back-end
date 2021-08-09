@@ -23,10 +23,11 @@ if (process.env.USE_GMAIL){
 }
 
 module.exports = {
-    createForgetPasswordEmail: ({to,code}) => {
+    createForgetPasswordEmail: ({to,code, forget_password_token}) => {
         let from = process.env.EMAIL_USER
-        let text = `Your verification code is: ${code}`
-        let html = `Your verification code is: ${code}`
+        let link = `${process.env.BASE_URL}/forgot_password?token=${forget_password_token}`
+        let text = `Click on this link to reset your passwrod: ${link}`
+        let html = `Click on this link to reset your passwrod: ${link}`
         let subject = "Solyd Floors: Forget password"
         return { from, to, subject, text, html }
     },
