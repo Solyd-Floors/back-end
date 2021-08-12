@@ -30,7 +30,9 @@ app.use(allowCrossDomain)
 app.get("/floors/total_pages", [
 
 ], async (req,res) => {
-    let total_pages = await getTotalFloorPages()
+    const floors = await findAll(req.query);
+    const divided = floors.length / 10
+    let total_pages = divided < 0 ? 1: Math.floor(divided + 1)
     return res.json({
         code: 200,
         message: "success",
