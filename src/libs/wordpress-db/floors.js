@@ -3,7 +3,7 @@ const { findCheapestFloorBoxPriceFor } = require("../woocommerce");
 const wp_db = require("./index");
 
 let sf_insertThumbnailIntoFloor = floor => {
-    let default_image = floor.images[0]
+    let default_image = floor.images && floor.images[0]
     floor.thumbnail_url = default_image && default_image.guid || null
     if (!floor.thumbnail_url) floor.thumbnail_url = "https://sf-front.herokuapp.com/woocommerce-placeholder-300x300.png"
 }
@@ -172,7 +172,7 @@ module.exports = {
                 variation.images = await findAttachments(variation.id)
                 sf_insertThumbnailIntoFloor(variation)
                 variation.meta = await findMetas(variation.id)
-                variation.price = variation.meta._price
+                variation.price = variation.meta && variation.meta._price
     
             }
             

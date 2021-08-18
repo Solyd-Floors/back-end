@@ -15,7 +15,7 @@ let insertVariationsIntoFloor = async floor => {
 
 let insertThumbnailIntoFloor = floor => {
   let default_image = floor.images[0]
-  floor.thumbnail_url = default_image && default_image.guid || null
+  floor.thumbnail_url = default_image && (default_image.guid || default_image.src) || null
   if (!floor.thumbnail_url) floor.thumbnail_url = "https://sf-front.herokuapp.com/woocommerce-placeholder-300x300.png"
 }
 
