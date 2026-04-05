@@ -12,15 +12,7 @@ const compression = require("compression");
 const bodyParser = require("body-parser")
 const logger = require("morgan")("dev")
 const mung = require("express-mung");
-const DocsCollector = require("docs-collector")
-
-const docs_collector = new DocsCollector(
-    __dirname + "/libs/api-docs/swagger-input.json",
-    __dirname + "/libs/api-docs/swagger.json"
-)
-docs_collector.generalAddYAML = () => {}
-
-global.docs_collector = docs_collector;
+global.docs_collector = null;
 
 const { errorHandler, allowCrossDomain } = require("./middlewares")
 
@@ -46,8 +38,6 @@ const orders_api = require("./libs/orders-api")
 const general_api = require("./libs/general-api")
 const inventory_api = require("./libs/inventory-api")
 // const wordpress_api = require("./libs/wordpress-api")
-
-docs_collector.generateSwaggerDocument()
 const api_docs = require("./libs/api-docs");
 
 
