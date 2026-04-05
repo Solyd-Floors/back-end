@@ -14,14 +14,15 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             defaultValue: "ACTIVE"
         },
+        woo_order_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        }
     });
 
     Cart.associate = models => {
-        Cart.belongsTo(models.User, { foreignKey: { allowNull: false } })
-        Cart.belongsToMany(models.FloorBox, {
-            through: models.CartFloorBox,
-            foreignKey: "CartId"
-        })
+        Cart.belongsTo(models.User)
+        Cart.belongsTo(models.Employee)
         Cart.hasMany(models.CartFloorItem, { foreignKey: { allowNull: false } })
     }
     

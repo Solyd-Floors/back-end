@@ -8,32 +8,29 @@ let getInventory = async () => {
 
     let items = {}
     for (let floor_box of floor_boxes){
-        let { FloorId, FloorTileSizeId, mil_type, price } = floor_box
+        let { FloorId, mil_type, price_per_square_foot } = floor_box
         if (!items[FloorId]) items[FloorId] = {}
-        if (!items[FloorId][FloorTileSizeId]) 
-            items[FloorId][FloorTileSizeId] = {}
-        if (!items[FloorId][FloorTileSizeId][price]) 
-            items[FloorId][FloorTileSizeId][price] = {}
-        if (!items[FloorId][FloorTileSizeId][price][mil_type]){
-            items[FloorId][FloorTileSizeId][price][mil_type] = 1
+        if (!items[FloorId]) 
+            items[FloorId] = {}
+        if (!items[FloorId][price_per_square_foot]) 
+            items[FloorId][price_per_square_foot] = {}
+        if (!items[FloorId][price_per_square_foot][mil_type]){
+            items[FloorId][price_per_square_foot][mil_type] = 1
         } else {
-            items[FloorId][FloorTileSizeId][price][mil_type]++;
+            items[FloorId][price_per_square_foot][mil_type]++;
         }
     }
     let inventory_items = []
     for (let FloorId in items){
-        for (let FloorTileSizeId in items[FloorId]){
-            for (let price in items[FloorId][FloorTileSizeId]){
-                for (let mil_type in items[FloorId][FloorTileSizeId][price]){
-                    inventory_items.push({
-                        id: inventory_items.length + 1,
-                        FloorId: Number(FloorId),
-                        FloorTileSizeId: Number(FloorTileSizeId),
-                        price: Number(price),
-                        mil_type: Number(mil_type),
-                        amount: items[FloorId][FloorTileSizeId][price][mil_type]
-                    })
-                }
+        for (let price_per_square_foot in items[FloorId]){
+            for (let mil_type in items[FloorId][price_per_square_foot]){
+                inventory_items.push({
+                    id: inventory_items.length + 1,
+                    FloorId: Number(FloorId),
+                    price_per_square_foot: Number(price_per_square_foot),
+                    mil_type: Number(mil_type),
+                    amount: items[FloorId][price_per_square_foot][mil_type]
+                })
             }
         }
     }
@@ -42,12 +39,11 @@ let getInventory = async () => {
 
 let findCheaperFloorBox = async ({
     mil_type,
-    price,
+    price_per_square_foot,
     FloorId,
-    FloorTileSizeId
 }) => {
     let floor_box = await FloorBox.findOne({
-        where: { mil_type, FloorId, FloorTileSizeId, price: { [Sequelize.Op.not]: price } }
+        where: { mil_type, FloorId, price_per_square_foot: { [Sequelize.Op.not]: price_per_square_foot } }
     })
     if (!floor_box) return;
     console.log({floor_box})
@@ -56,21 +52,18 @@ let findCheaperFloorBox = async ({
 
 let addFloorBoxes = async ({
     mil_type,
-    price,
+    price_per_square_foot,
     FloorId,
-    FloorTileSizeId,
-    amount,
-    return_undefined
-}) => {
-    let cheaper = await findCheaperFloorBox({ mil_type, FloorId, FloorTileSizeId, price })
-    if (cheaper !== undefined) throw new ErrorHandler(403, "PriceDifferentNotAllowed", [ 
-        `There exists floor boxes of the same type with the price ${cheaper.price}, to add others price must be the same.`
+    amount
+}, return_undefined) => {
+    let cheaper = await findCheaperFloorBox({ mil_type, FloorId, price_per_square_foot })
+    if (cheaper !== undefined) throw new ErrorHandler(403, "price_per_square_footDifferentNotAllowed", [ 
+        `There exists floor boxes of the same type with the price_per_square_foot ${cheaper.price_per_square_foot}, to add others price_per_square_foot must be the same.`
     ])
     let FloorBoxData = {
         mil_type,
-        price,
+        price_per_square_foot,
         FloorId,
-        FloorTileSizeId,    
     }
     let floor_boxes = []
     for (let x=0;x<amount;x++){
@@ -86,18 +79,22 @@ let addFloorBoxes = async ({
 
 let deleteFloorBoxes = async ({
     mil_type,
-    price,
+    price_per_square_foot, 
     FloorId,
-    FloorTileSizeId,
-    amount,
-    return_undefined
-}) => {
+    amount
+}, return_undefined) => {
+    console.log({
+        mil_type,
+        price_per_square_foot, 
+        FloorId,
+        amount,
+        return_undefined
+    },90999)
     await FloorBox.destroy({ 
         where: {
             mil_type,
-            price,
-            FloorId,
-            FloorTileSizeId,          
+            price_per_square_foot,
+            FloorId,          
         },
         limit: amount
     })
@@ -109,7 +106,7 @@ module.exports = {
     getInventory,
     addInventory: addFloorBoxes,
     updateInventory: async ({ before, after }) => {
-        let { amount: before_amount, price: before_price, ...before_rest } = before
+        let { amount: before_amount, price_per_square_foot: before_price_per_square_foot, ...before_rest } = before
         let { amount: after_amount, ...after_rest } = after
         let current_floor_boxes = await FloorBox.count({ where: before_rest })
         console.log({current_floor_boxes, before_rest})
@@ -120,11 +117,12 @@ module.exports = {
         let remove;
         if (before_amount > after_amount) remove = before_amount - after_amount
         if (before_amount < after_amount) add = after_amount - before_amount
-        if (add) await addFloorBoxes(after_rest, true)
-        if (remove) await deleteFloorBoxes(after_rest, true)
         await FloorBox.update(after_rest, { 
             where: before_rest
         })
+        console.log({add, remove, after_rest })
+        if (add) await addFloorBoxes({ ...after_rest, amount: add}, true)
+        if (remove) await deleteFloorBoxes({ ...after_rest, amount: remove}, true)
         return await getInventory()
     },
 }

@@ -5,9 +5,11 @@ const app = module.exports = express();
 
 const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
 
-const { post_industries, patch_industries, delete_industries } = require("./validations");
 const { findAll, createIndustry, updateIndustry, deleteIndustry } = require("./industries-dal");
 const { ErrorHandler } = require("../../utils/error");
+
+const yup = require("yup");
+const { param_id } = require("../utils/validations");
 
 app.use(allowCrossDomain)
 
@@ -22,7 +24,11 @@ app.get("/industries", async (req,res) => {
 
 app.post("/industries",[
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(post_industries)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            name: yup.string().required(),
+        })
+    }))
 ], async (req,res) => {
     let industry = await createIndustry(req.body);
     return res.json({
@@ -34,7 +40,14 @@ app.post("/industries",[
 
 app.patch("/industries/:industry_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(patch_industries)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            name: yup.string().required(),
+        }),
+        params: yup.object().shape({
+            industry_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     let industry = await updateIndustry({
         pk: req.params.industry_id,
@@ -49,7 +62,11 @@ app.patch("/industries/:industry_id", [
 
 app.delete("/industries/:industry_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(delete_industries)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            industry_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     await deleteIndustry(req.params.industry_id)
     return res.json({

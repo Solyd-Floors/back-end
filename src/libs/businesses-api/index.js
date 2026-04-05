@@ -5,9 +5,10 @@ const app = module.exports = express();
 
 const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
 
-const { post_businesses, patch_businesses, delete_businesses } = require("./validations");
 const { findAll, createBusiness, updateBusiness, deleteBusiness } = require("./businesses-dal");
 const { ErrorHandler } = require("../../utils/error");
+const { param_id } = require("../utils/validations");
+const yup = require("yup");
 
 app.use(allowCrossDomain)
 
@@ -22,7 +23,15 @@ app.get("/businesses", async (req,res) => {
 
 app.post("/businesses",[
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(post_businesses)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            name: yup.string().required(),
+            address: yup.string().required(),
+            phone_number: yup.string().required(),
+            UserId: yup.number().positive().required(),
+            IndustryId: yup.number().positive().required(),
+        })
+    }))
 ], async (req,res) => {
     let business = await createBusiness(req.body);
     return res.json({
@@ -34,7 +43,18 @@ app.post("/businesses",[
 
 app.patch("/businesses/:business_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(patch_businesses)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            name: yup.string().required(),
+            address: yup.string().required(),
+            phone_number: yup.string().required(),
+            UserId: yup.number().positive().required(),
+            IndustryId: yup.number().positive().required(),
+        }),
+        params: yup.object().shape({
+            business_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     let business = await updateBusiness({
         pk: req.params.business_id,
@@ -49,7 +69,11 @@ app.patch("/businesses/:business_id", [
 
 app.delete("/businesses/:business_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(delete_businesses)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            business_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     await deleteBusiness(req.params.business_id)
     return res.json({

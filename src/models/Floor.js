@@ -1,6 +1,8 @@
 "use strict"
 
 const { ErrorHandler } = require("../utils/error");
+const { getFloors, findProductByPkOr404 } = require("../libs/woocommerce");
+const wp_floors = require("../libs/wordpress-db/floors")
 
 module.exports = (sequelize, DataTypes) => {
     let options = {
@@ -21,6 +23,24 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         },
+        plank_dimension_width: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        plank_dimension_height: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        cached_avg_rating: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        },
+        cached_total_reviews_len: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        },
         __typename: {
             type: DataTypes.VIRTUAL,
             get: function(val){
@@ -29,17 +49,21 @@ module.exports = (sequelize, DataTypes) => {
         }
     }, options);
 
+    Floor.wooFindAll = async options => {
+        return await wp_floors.findAll(options)
+        // return await getFloors(options); //deprecated
+    }
+
+    Floor.wooFindByPkOr404 = async floor_id => {
+        console.log(555)
+        return await findProductByPkOr404(floor_id)
+    }
+    
     Floor.associate = models => {
         Floor.belongsTo(models.FloorCategory, { foreignKey: { allowNull: false } })
         Floor.belongsTo(models.FloorType, { foreignKey: { allowNull: false } })
         Floor.belongsTo(models.Color, { foreignKey: { allowNull: false } })
-        Floor.belongsTo(models.Brand, { foreignKey: { allowNull: false } })
         Floor.belongsTo(models.User, { foreignKey: { allowNull: false } })
-        Floor.belongsToMany(models.FloorTileSize, { 
-            // foreignKey: { allowNull: false },
-            through: models.FloorFloorTileSize ,
-            foreignKey: "FloorId"
-        })
     }
     
     return Floor;

@@ -12,10 +12,12 @@ const {
     passBusinessFromJWT
 } = require("../../middlewares");
 
-const { get_employees_employee_id, post_my_business_employees, patch_my_business_employees } = require("./validations");
-const {  } = require("./my-business-dal");
+const { findShipToAddressByBusinessId, deleteShipToAddress, createShipToAddress, findOneShipToAddressOr404, findBusinessOrders } = require("./my-business-dal");
 const { ErrorHandler } = require("../../utils/error");
 const { createEmployee, findEmployeesByBusiness, findEmployeeByIdAndBusinessId, deleteEmployee, updateEmployee } = require("../employees-dal");
+const { getUserActiveCart } = require("../me-dal");
+const yup = require("yup")
+const { param_id } = require("../utils/validations")
 
 app.use(allowCrossDomain)
 
@@ -32,7 +34,11 @@ app.get("/my_business/employees", [
 
 app.get("/my_business/employees/:employee_id", [
     jwtRequired, passBusinessFromJWT,
-    validateRequest(get_employees_employee_id)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            employee_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     let employee = await findEmployeeByIdAndBusinessId({
         id: req.params.employee_id,
@@ -48,7 +54,11 @@ app.get("/my_business/employees/:employee_id", [
 
 app.delete("/my_business/employees/:employee_id", [
     jwtRequired, passBusinessFromJWT,
-    validateRequest(get_employees_employee_id)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            employee_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     let employee = await findEmployeeByIdAndBusinessId({
         id: req.params.employee_id,
@@ -63,9 +73,34 @@ app.delete("/my_business/employees/:employee_id", [
     })
 })
 
+app.get("/my_business/orders", [
+    jwtRequired, passBusinessFromJWT
+], async (req,res) => {
+    let orders = await findBusinessOrders(req.business.UserId);
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { orders }
+    })
+})
+
 app.post("/my_business/employees",[
     jwtRequired, passBusinessFromJWT,
-    validateRequest(post_my_business_employees)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            email: yup.string().email().required(),
+            password: yup.string().min(8).required(),
+            first_name: yup.string().required(),
+            last_name: yup.string().required(),
+            address: yup.string(),
+            address2: yup.string(),
+            city: yup.string(),
+            state: yup.string(),
+            country: yup.string(),
+            postcode: yup.string(),
+            phone_number: yup.string(),
+        })
+    }))
 ], async (req,res) => {
     let employee = await createEmployee({
         ...req.body,
@@ -80,7 +115,24 @@ app.post("/my_business/employees",[
 
 app.patch("/my_business/employees/:employee_id",[
     jwtRequired, passBusinessFromJWT,
-    validateRequest(patch_my_business_employees)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            employee_id: param_id.required()
+        }),
+        requestBody: yup.object().shape({
+            email: yup.string().email().required(),
+            password: yup.string().min(8).required(),
+            first_name: yup.string().required(),
+            last_name: yup.string().required(),
+            address: yup.string(),
+            address2: yup.string(),
+            city: yup.string(),
+            state: yup.string(),
+            country: yup.string(),
+            postcode: yup.string(),
+            phone_number: yup.string(),
+        })
+    }))
 ], async (req,res) => {
     let employee = await updateEmployee({
         pk: req.params.employee_id,
@@ -92,5 +144,79 @@ app.patch("/my_business/employees/:employee_id",[
         code: 200,
         message: "success",
         data: { employee }
+    })
+})
+
+app.get("/my_business/ship_to_addresses", [
+    jwtRequired, passBusinessFromJWT
+], async (req,res) => {
+    let ship_to_addresses = await findShipToAddressByBusinessId(req.business.id)
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { ship_to_addresses }
+    })
+})
+
+app.get("/my_business/ship_to_addresses/:ship_to_address_id", [
+    jwtRequired, passBusinessFromJWT
+], async (req,res) => {
+    let ship_to_address = await findOneShipToAddressOr404({
+        pk: req.params.ship_to_address_id,
+        BusinessId: req.business.id
+    })
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { ship_to_address }
+    })
+})
+
+app.post("/my_business/ship_to_addresses", [
+    jwtRequired, passBusinessFromJWT,
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            address: yup.string().required()
+        })
+    }))
+], async (req,res) => {
+    let ship_to_address = await createShipToAddress({
+        BusinessId: req.business.id,
+        address: req.body.address
+    })
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { ship_to_address }
+    })
+})
+
+app.delete("/my_business/ship_to_addresses/:ship_to_address_id", [
+    jwtRequired, passBusinessFromJWT,
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            ship_to_address_id: param_id.required()
+        })
+    }))
+], async (req,res) => {
+    let ship_to_address = await deleteShipToAddress({
+        BusinessId: req.business.id,
+        pk: req.params.ship_to_address_id
+    })
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { ship_to_address }
+    })
+})
+
+app.get("/my_business/cart", [
+    jwtRequired, passBusinessFromJWT
+], async (req,res) => {
+    let cart = await getUserActiveCart({ UserId: req.business.UserId })
+    return res.json({
+        code: 200,
+        message: "success",
+        data: { cart }
     })
 })

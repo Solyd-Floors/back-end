@@ -9,6 +9,8 @@ const { post_contacts } = require("./validations");
 const { findAll, createContact, updateContact, deleteContact } = require("./contacts-dal");
 const { ErrorHandler } = require("../../utils/error");
 
+const yup = require("yup");
+
 app.use(allowCrossDomain)
 
 app.get("/contacts", async (req,res) => {
@@ -22,7 +24,14 @@ app.get("/contacts", async (req,res) => {
 
 app.patch("/contacts/:contact_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(post_contacts)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            first_name: yup.string().required(),
+            last_name: yup.string().required(),
+            email: yup.string().required(),
+            reason: yup.string().required(),
+        })
+    }))
 ], async (req,res) => {
     let contact = await updateContact({ 
         pk: Number(req.params.contact_id),

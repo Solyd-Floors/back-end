@@ -5,9 +5,10 @@ const app = module.exports = express();
 
 const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
 
-const { post_floor_categories, patch_floor_categories, delete_floor_categories } = require("./validations");
 const { findAll, createFloorCategory, updateFloorCategory, deleteFloorCategory } = require("./floor-categories-dal");
 const { ErrorHandler } = require("../../utils/error");
+const yup = require("yup");
+const { param_id } = require("../utils/validations");
 
 app.use(allowCrossDomain)
 
@@ -22,7 +23,11 @@ app.get("/floor_categories", async (req,res) => {
 
 app.post("/floor_categories", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(post_floor_categories)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            name: yup.string().required(),
+        })
+    }))
 ], async (req,res) => {
     let floor_category = await createFloorCategory(req.body);
     return res.json({
@@ -34,7 +39,14 @@ app.post("/floor_categories", [
 
 app.patch("/floor_categories/:floor_category_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(patch_floor_categories)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            name: yup.string(),
+        }),
+        params: yup.object().shape({
+            floor_category_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     let floor_category = await updateFloorCategory({
         data: req.body,
@@ -49,7 +61,11 @@ app.patch("/floor_categories/:floor_category_id", [
 
 app.delete("/floor_categories/:floor_category_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(delete_floor_categories)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            floor_category_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     await deleteFloorCategory(req.params.floor_category_id)
     return res.json({

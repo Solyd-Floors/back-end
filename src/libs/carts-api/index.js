@@ -8,16 +8,11 @@ const {
     passUserFromJWT, adminRequired
 } = require("../../middlewares");
 
-const { 
-    post_carts_add_floor_boxes,
-    get_carts, 
-    post_carts, 
-    delete_carts, 
-    patch_carts 
-} = require("./validations");
 const { findAll, updateCart, deleteCart, findOne, discardCart, addBoxesToCart } = require("./carts-dal");
 const { createCart } = require("../carts-dal");
 const { ErrorHandler } = require("../../utils/error");
+const { param_id } = require("../utils/validations");
+const yup = require("yup");
 
 app.use(allowCrossDomain)
 
@@ -31,7 +26,11 @@ app.get("/carts/:cart_id", async (req,res) => {
 })
 
 app.get("/carts", [
-    validateRequest(get_carts)
+    validateRequest(yup.object().shape({
+        query: yup.object().shape({
+
+        })
+    }))
 ], async (req,res) => {
     let carts = await findAll(req.query);
     return res.json({
@@ -43,7 +42,14 @@ app.get("/carts", [
 
 app.patch("/carts/:cart_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(patch_carts)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            UserId: yup.number().integer().positive(),
+        }),
+        params: yup.object().shape({
+            carts_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     let cart = await updateCart({ 
         pk: req.params.cart_id,
@@ -58,7 +64,11 @@ app.patch("/carts/:cart_id", [
 
 app.delete("/carts/:cart_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(delete_carts)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            carts_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     await deleteCart(req.params.cart_id);
     return res.json({
@@ -69,7 +79,11 @@ app.delete("/carts/:cart_id", [
 
 app.post("/carts", [
     jwtRequired, passUserFromJWT, adminRequired,
-     validateRequest(post_carts)
+     validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            UserId: yup.number().integer().positive().required(),
+        })
+    }))
 ], async (req,res) => {
     let cart = await createCart(req.body)
     return res.json({

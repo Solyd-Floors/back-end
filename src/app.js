@@ -4,7 +4,7 @@ require('express-async-errors');
 
 const models = require("./models")
 
-models.sequelize.sync({ force: false || process.env.RESET_DB_FORCE });
+models.sequelize.sync({ alter: false || process.env.RESET_DB_FORCE });
 
 const http = require('http');
 const express = require('express')
@@ -18,6 +18,7 @@ const docs_collector = new DocsCollector(
     __dirname + "/libs/api-docs/swagger-input.json",
     __dirname + "/libs/api-docs/swagger.json"
 )
+docs_collector.generalAddYAML = () => {}
 
 global.docs_collector = docs_collector;
 
@@ -30,12 +31,10 @@ const employees_api = require("./libs/employees-api")
 const industries_api = require("./libs/industries-api")
 const me_api = require("./libs/me-api")
 const auth_api = require("./libs/auth-api")
-const brands_api = require("./libs/brands-api")
 const installers_api = require("./libs/installers-api")
 const floors_api = require("./libs/floors-api")
 const floor_types_api = require("./libs/floor-types-api")
 const floor_categories_api = require("./libs/floor-categories-api")
-const floor_tile_sizes_api = require("./libs/floor-tile-sizes-api")
 const floor_boxes_api = require("./libs/floor-boxes-api")
 const countries_api = require("./libs/countries-api")
 const contacts_api = require("./libs/contacts-api")
@@ -44,10 +43,13 @@ const videos_api = require("./libs/videos-api")
 const colors_api = require("./libs/colors-api")
 const carts_api = require("./libs/carts-api")
 const orders_api = require("./libs/orders-api")
+const general_api = require("./libs/general-api")
 const inventory_api = require("./libs/inventory-api")
+// const wordpress_api = require("./libs/wordpress-api")
 
 docs_collector.generateSwaggerDocument()
 const api_docs = require("./libs/api-docs");
+
 
 const app = express();
 const server = http.createServer(app)
@@ -76,7 +78,6 @@ app.use(allowCrossDomain)
 
 const V1_PATHNAME_PREFIX = "/api/v1";
 
-app.use(V1_PATHNAME_PREFIX, api_docs)
 app.use(V1_PATHNAME_PREFIX, auth_api)
 app.use(V1_PATHNAME_PREFIX, users_api)
 app.use(V1_PATHNAME_PREFIX, businesses_api)
@@ -85,12 +86,10 @@ app.use(V1_PATHNAME_PREFIX, industries_api)
 app.use(V1_PATHNAME_PREFIX, me_api)
 app.use(V1_PATHNAME_PREFIX, team_members_api)
 app.use(V1_PATHNAME_PREFIX, contacts_api)
-app.use(V1_PATHNAME_PREFIX, brands_api);
 app.use(V1_PATHNAME_PREFIX, installers_api);
 app.use(V1_PATHNAME_PREFIX, floors_api);
 app.use(V1_PATHNAME_PREFIX, floor_types_api);
 app.use(V1_PATHNAME_PREFIX, floor_categories_api)
-app.use(V1_PATHNAME_PREFIX, floor_tile_sizes_api)
 app.use(V1_PATHNAME_PREFIX, floor_boxes_api)
 app.use(V1_PATHNAME_PREFIX, countries_api);
 app.use(V1_PATHNAME_PREFIX, videos_api);
@@ -99,23 +98,21 @@ app.use(V1_PATHNAME_PREFIX, carts_api);
 app.use(V1_PATHNAME_PREFIX, orders_api);
 app.use(V1_PATHNAME_PREFIX, inventory_api);
 app.use(V1_PATHNAME_PREFIX, my_business_api);
+app.use(V1_PATHNAME_PREFIX, api_docs)
+app.use(V1_PATHNAME_PREFIX, general_api);
+// app.use(V1_PATHNAME_PREFIX, wordpress_api);
 
-// const V2_PATHNAME_PREFIX = "/api/v2";
 
-// app.use(mung.jsonAsync(
-//     async function transform(body,req,res) {
-//         let data = body.data;
-//         if (!data) return body
-//         if (Object.keys(data).length !== 1) return body;
-//         let key = Object.keys(data)[0]
-//         let list = data[key]
-//         if (typeof(list) !== "object" || list.length === undefined) return body;
-//         let transformed = { ...body, data: list }
-//         return [ list[0] ];
-//     }
-// ))
+app.get("/test", async (req,res) => {
+    let { data } = await WooCommerce.get("products")
+    return res.json({ data })
+})
 
-// app.use(V2_PATHNAME_PREFIX, floor_boxes_api)
+const V2_PATHNAME_PREFIX = "/api/v2";
+const get_model_pagination = require("./libs/v2-get-model-pagination");
+const WooCommerce = require('./libs/woocommerce');
+app.use(V2_PATHNAME_PREFIX, get_model_pagination)
+
 
 app.get('/', (req, res) => res.json({ versions: [ "v1"] }))
 

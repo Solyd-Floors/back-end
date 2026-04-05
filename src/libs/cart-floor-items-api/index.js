@@ -5,10 +5,10 @@ const app = module.exports = express();
 
 const { allowCrossDomain, validateRequest, jwtRequired, passUserFromJWT, adminRequired } = require("../../middlewares");
 
-const { post_cart_floor_items, patch_cart_floor_items, delete_cart_floor_items } = require("./validations");
 const { findAll, updateCartFloorItem, deleteCartFloorItem } = require("./cart-floor-items-dal");
 const { ErrorHandler } = require("../../utils/error");
 const { createCartFloorItem } = require("../cart-floor-items-dal");
+const yup = require("yup");
 
 app.use(allowCrossDomain)
 
@@ -23,7 +23,15 @@ app.get("/cart_floor_items", async (req,res) => {
 
 app.post("/cart_floor_items",[
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(post_cart_floor_items)
+    validateRequest(yup.object().shape({
+        requestBody: yup.object().shape({
+            CartId: id.required(), 
+            mil_type: id.required(),
+            boxes_amount: id.required(),
+            FloorTileSizeId: id.required(),
+            FloorId: id.required(),
+        })
+    }))
 ], async (req,res) => {
     let cart_floor_item = await createCartFloorItem(req.body);
     return res.json({
@@ -36,7 +44,17 @@ app.post("/cart_floor_items",[
 // TODO: Think about it
 // app.patch("/cart_floor_items/:cart_floor_item_id", [
 //     jwtRequired, passUserFromJWT, adminRequired,
-//     validateRequest(patch_cart_floor_items)
+//     validateRequest(yup.object().shape({
+    //     requestBody: yup.object().shape({ 
+    //         mil_type: id.required(),
+    //         boxes_amount: id.required(),
+    //         FloorTileSizeId: id.required(),
+    //         FloorId: id.required(),
+    //     }),
+    //     params: yup.object().shape({
+    //         cart_floor_item_id: param_id.required()
+    //     })
+    // }))
 // ], async (req,res) => {
 //     let cart_floor_item = await updateCartFloorItem({
 //         pk: req.params.cart_floor_item_id,
@@ -51,7 +69,11 @@ app.post("/cart_floor_items",[
 
 app.delete("/cart_floor_items/:cart_floor_item_id", [
     jwtRequired, passUserFromJWT, adminRequired,
-    validateRequest(delete_cart_floor_items)
+    validateRequest(yup.object().shape({
+        params: yup.object().shape({
+            cart_floor_item_id: param_id.required()
+        })
+    }))
 ], async (req,res) => {
     await deleteCartFloorItem(req.params.cart_floor_item_id)
     return res.json({

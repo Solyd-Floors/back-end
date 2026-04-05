@@ -1,0 +1,36 @@
+schemas:
+  FloorType:
+    required:
+      - id
+      - name
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      name:
+        type: string
+        example: "Typename"
+paths:
+  "/floor_types":
+    get:
+      tags:
+        - FloorType
+      summary: Get all floor types
+      responses:
+        '200':
+          description: Returns a list of floor types
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - "$ref": "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data: 
+                        type: object
+                        properties:
+                          floor_types:
+                            type: array
+                            items:
+                              "$ref": "#/components/schemas/FloorType"

@@ -1,19 +1,30 @@
 
 const { Cart } = require("../../models");
-const { CartFloorBox, FloorBox, FloorTileSize, CartFloorItem, Floor } = require("../../models");
+const { CartFloorBox, FloorBox, CartFloorItem, Floor } = require("../../models");
+const { User } = require("../../models");
+const { ErrorHandler } = require("../../utils/error");
 const getPrice = require("../../utils/getPrice");
+const { createPendingOrder } = require("../woocommerce");
 const { getCartFloorItemWithMoreInfo } = require("./utils");
 
 module.exports = {
-    findOne: async ({ UserId, status, not_json }) => {
+    findOne: async ({ id, UserId, EmployeeId, status, not_json }) => {
+        let where = {}
+        if (UserId) where.UserId = UserId
+        if (id) where.id = id
+        if (EmployeeId) where.EmployeeId = EmployeeId
+        if (status) where.status = status
+        
         let cart = await Cart.findOne({
-            where: { UserId, status }, include: [ 
-                {
-                    model: CartFloorItem,
-                    include: [ Floor, FloorTileSize ]
-                }
-             ]
+            where, 
+            // include: [ 
+            //     {
+            //         model: CartFloorItem,
+            //         include: [ Floor ]
+            //     }
+            //  ]
         })
+        return cart; // woo
         if (not_json) return cart
         cart = JSON.parse(JSON.stringify(cart)) 
         if (cart && cart.CartFloorItems) {
@@ -26,14 +37,24 @@ module.exports = {
         return cart;
     },
     createCart: async ({ 
-        UserId
+        UserId, EmployeeId
      }) => {
+        let where = { status: "ACTIVE" }
+        if (UserId) where.UserId = UserId
+        if (EmployeeId) where.EmployeeId = EmployeeId
         if (
-            await Cart.findOne({ where: { UserId, status: "ACTIVE" }})
+            await Cart.findOne({ where })
         ) throw new ErrorHandler(403, "Discard active cart to create a new one.")
-        return await Cart.create({ 
-            UserId
+        let user = await User.findByPk(UserId);
+        let woo_order = await createPendingOrder({ user });
+        let cart = await Cart.create({ 
+            UserId, EmployeeId,
+            woo_order_id: woo_order.id
         })
+        cart = JSON.parse(JSON.stringify(cart));
+        cart.woo_order = woo_order;
+        return cart;
+
     },
     getCartWithAllItems: async ({
         CartId
@@ -46,14 +67,12 @@ module.exports = {
         let items = {}
         for (let cart_floor_box of cart_floor_boxes){
             let floor_box = cart_floor_box.FloorBox;
-            let { FloorId, FloorTileSizeId, mil_type } = floor_box
+            let { FloorId, mil_type } = floor_box
             if (!items[FloorId]) items[FloorId] = {}
-            if (!items[FloorId][FloorTileSizeId]) 
-                items[FloorId][FloorTileSizeId] = {}
-            if (!items[FloorId][FloorTileSizeId][mil_type]){
-                items[FloorId][FloorTileSizeId][mil_type] = 1
+            if (!items[FloorId][mil_type]){
+                items[FloorId][mil_type] = 1
             } else {
-                items[FloorId][FloorTileSizeId][mil_type]++;
+                items[FloorId][mil_type]++;
             }
         }
 

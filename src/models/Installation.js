@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
 
     Installation.associate = models => {
         Installation.belongsTo(models.Installer, { foreignKey: { allowNull: false } })
-        Installation.hasOne(models.Order, { foreignKey: { allowNull: false } })
+        Installation.belongsTo(models.Order, { foreignKey: { allowNull: false } })
     }
     
     return Installation;
