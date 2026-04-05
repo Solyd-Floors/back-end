@@ -11,12 +11,34 @@ var basename = path.basename(__filename);
 
 var db = {};
 let sequelize;
+const dialect = process.env.DB_DIALECT === 'postgresql' ? 'postgres' : process.env.DB_DIALECT;
 
-sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
-    host: process.env.DB_HOST,
-    dialect: process.env.DB_DIALECT /* one of 'mysql' | 'mariadb' | 'postgres' | 'mssql' */,
+function getDialectModule(selectedDialect) {
+    switch (selectedDialect) {
+        case 'postgres':
+            return require('pg');
+        case 'mysql':
+        case 'mariadb':
+            return require('mysql2');
+        default:
+            return undefined;
+    }
+}
+
+const sequelizeOptions = {
+    dialect /* one of 'mysql' | 'mariadb' | 'postgres' | 'mssql' */,
+    dialectModule: getDialectModule(dialect),
     logging: false
-});
+};
+
+if (process.env.DATABASE_URL) {
+    sequelize = new Sequelize(process.env.DATABASE_URL, sequelizeOptions);
+} else {
+    sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
+        ...sequelizeOptions,
+        host: process.env.DB_HOST
+    });
+}
 
 
 sequelize.authenticate()
