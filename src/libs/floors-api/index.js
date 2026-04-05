@@ -24,6 +24,19 @@ const uploadMiddleware = upload.fields([
 const yup = require("yup");
 const { param_id, positive_integer_as_string } = require("../utils/validations");
 
+const toSlug = value => String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const populateFloorTypeSlugFromName = (req, res, next) => {
+    if (!req.body?.FloorTypeSlug && req.body?.name) {
+        req.body.FloorTypeSlug = toSlug(req.body.name);
+    }
+    next();
+};
+
 app.use(allowCrossDomain)
 
 app.get("/floors/total_pages", [
@@ -111,6 +124,7 @@ app.get("/floors", [
 
 app.patch("/floors/:floor_id", [
     jwtRequired, passUserFromJWT, adminRequired,
+    populateFloorTypeSlugFromName,
     body_param_string_to_integer("plank_dimension_width"),
     body_param_string_to_integer("plank_dimension_height"), 
     uploadMiddleware, validateRequest(yup.object().shape({
@@ -118,7 +132,7 @@ app.patch("/floors/:floor_id", [
             name: yup.string(),
             description: yup.string(),
             FloorCategoryId: positive_integer_as_string,
-            FloorTypeSlug: positive_integer_as_string,
+            FloorTypeSlug: yup.string(),
             ColorId: positive_integer_as_string,
             plank_dimension_width: param_id.required(),
             plank_dimension_height: param_id.required(),
@@ -162,6 +176,7 @@ app.delete("/floors/:floor_id", [
 
 app.post("/floors", [
     jwtRequired, passUserFromJWT, adminRequired,
+    populateFloorTypeSlugFromName,
     uploadMiddleware, body_param_string_to_integer("price"),
     body_param_string_to_integer("plank_dimension_width"),
     body_param_string_to_integer("plank_dimension_height"), 
@@ -170,7 +185,7 @@ app.post("/floors", [
             name: yup.string().required(),
             description: yup.string().required(),
             FloorCategoryId: positive_integer_as_string.required(),
-            FloorTypeSlug: positive_integer_as_string.required(),
+            FloorTypeSlug: yup.string(),
             ColorId: positive_integer_as_string.required(),
             plank_dimension_width: yup.number().positive().required(),
             plank_dimension_height: yup.number().positive().required(),
