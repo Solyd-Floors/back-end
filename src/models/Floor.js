@@ -1,7 +1,5 @@
 "use strict"
 
-const wp_floors = require("../libs/wordpress-db/floors")
-
 module.exports = (sequelize, DataTypes) => {
     let options = {
         // defaultScope: { 
@@ -46,14 +44,6 @@ module.exports = (sequelize, DataTypes) => {
             }
         }
     }, options);
-
-    Floor.wooFindAll = async options => {
-        return await wp_floors.findAll(options)
-    }
-
-    Floor.wooFindByPkOr404 = async floor_id => {
-        return await wp_floors.findByPkOr404(floor_id)
-    }
     
     Floor.associate = models => {
         Floor.belongsTo(models.FloorCategory, { foreignKey: { allowNull: false } })

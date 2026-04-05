@@ -1,301 +1,361 @@
-
 const { getFloorBoxesInfo } = require("../floor-boxes-dal");
 const { ErrorHandler } = require("../../utils/error");
-const { findAll: findAllCartFloorBoxes } = require("../cart-floor-boxes-dal");
-const { 
-    Floor, 
-    FloorBox, 
-    Invoice, 
-    Order, 
-    Cart, 
-    CartFloorItem, 
-} = require("../../models");
-const { findOne: findOneCartFloorItem, findAllOnCart, removeBoxesFromCartFloorItem, deleteCartFloorItem, findAllForCartWhere } = require("../cart-floor-items-dal");
+const models = require("../../models");
+const {
+    Floor,
+    FloorBox,
+    Invoice,
+    Order,
+    CartFloorItem
+} = models;
+const { findOne: findOneCartFloorItem, removeBoxesFromCartFloorItem, deleteCartFloorItem } = require("../cart-floor-items-dal");
 const { createCartFloorItem, findAllForCart: findAllForCartCartFloorItems } = require("../cart-floor-items-dal");
 const { getUserActiveCart } = require("../me-dal");
-const uuid = require("uuid");
 const { findOne: findOneCart } = require("../carts-dal");
-const { findProductByPkOr404, addLineItemToOrder, setOrderTransactionId, removeLineItemFromOrder, getCustomerOrders } = require("../woocommerce");
 const { findByPk: findUserByPk } = require("../users-api/users-dal");
 const { chargeCustomer } = require("../stripe");
+const uuid = require("uuid");
 
-const getMyCartFloorItemsInfo = async ({
-    UserId
-}) => {
-    let { id: CartId } = await getUserActiveCart({ UserId });
-    let cart_floor_items = await findAllForCartCartFloorItems({ CartId })
-    cart_floor_items = cart_floor_items.map(async cart_floor_item => {
-        cart_floor_item = JSON.parse(JSON.stringify(cart_floor_item))
-        let { FloorId,mil_type, boxes_amount } = cart_floor_item
-        let stock_info = await getFloorBoxesInfo({
-            mil_type, FloorId,limit: boxes_amount
-        })
-        let stock_available = stock_info.boxes >= boxes_amount
-        if (!stock_available) {
-            cart_floor_item = JSON.parse(JSON.stringify(cart_floor_item))
-            cart_floor_item.in_stock = false;
-            cart_floor_item.stock_info = stock_info;
-        } else {
-            cart_floor_item.in_stock = true;
-        }
-        return cart_floor_item
-    })
-    return Promise.all(cart_floor_items);
-}
+const getCartFloorItemsWithFloor = async ({ CartId }) => await CartFloorItem.findAll({
+    where: { CartId },
+    include: [ Floor ],
+    order: [
+        [ "id", "ASC" ]
+    ]
+});
 
-const getTotalPrice = async ({cart_floor_items}) => {
+const formatLineItem = cartFloorItem => ({
+    id: cartFloorItem.id,
+    product_id: cartFloorItem.FloorId,
+    quantity: cartFloorItem.boxes_amount,
+    name: cartFloorItem.Floor ? cartFloorItem.Floor.name : undefined
+});
+
+const getOrderDetails = async order => {
+    const parsedOrder = JSON.parse(JSON.stringify(order));
+    parsedOrder.Invoice = parsedOrder.Invoice || await Invoice.findByPk(order.InvoiceId);
+    parsedOrder.Cart = await findOneCart({ id: order.CartId });
+    parsedOrder.CartFloorItems = JSON.parse(JSON.stringify(await getCartFloorItemsWithFloor({
+        CartId: order.CartId
+    })));
+    parsedOrder.quantity = 0;
+    parsedOrder.products = [];
+    parsedOrder.CartFloorItems.forEach(cartFloorItem => {
+        parsedOrder.quantity += cartFloorItem.boxes_amount;
+        parsedOrder.products.push(
+            `${cartFloorItem.Floor ? cartFloorItem.Floor.name : `Floor #${cartFloorItem.FloorId}`} - ${cartFloorItem.boxes_amount * 23.4}sqft`
+        );
+    });
+    return parsedOrder;
+};
+
+const getTotalPrice = async ({ cartFloorItems }) => {
     let price = 0;
-    for (let cart_floor_item of cart_floor_items){
-        let {  FloorId, mil_type, boxes_amount } = cart_floor_item;
-        let floor_box = await FloorBox.findOne({ where: { 
-             FloorId, mil_type
-        }})
-        if (!floor_box) return 0
-        price += floor_box.price_per_square_foot * boxes_amount
+    for (let cartFloorItem of cartFloorItems) {
+        const floorBox = await FloorBox.findOne({
+            where: {
+                FloorId: cartFloorItem.FloorId,
+                mil_type: cartFloorItem.mil_type,
+                status: "ACTIVE"
+            },
+            order: [
+                [ "price_per_square_foot", "ASC" ]
+            ]
+        });
+        if (!floorBox) return 0;
+        price += Number(floorBox.price_per_square_foot) * 23.4 * cartFloorItem.boxes_amount;
     }
     return price;
-}
+};
+
+const getCartItemsStock = async ({ cartFloorItems }) => {
+    const stockChecks = [];
+    for (let cartFloorItem of cartFloorItems) {
+        const availableBoxes = await FloorBox.count({
+            where: {
+                FloorId: cartFloorItem.FloorId,
+                mil_type: cartFloorItem.mil_type,
+                status: "ACTIVE"
+            }
+        });
+        stockChecks.push({
+            cartFloorItem,
+            availableBoxes
+        });
+    }
+    return stockChecks;
+};
 
 module.exports = {
-    getOrders: async ({ woo_customer_id }) => {
-        let woo_orders = await getCustomerOrders({ woo_customer_id })
-        let orders = []
-        for (let woo_order of woo_orders) {
-            let _stripe_charge_ = woo_order.meta_data.find(x => x.key === "_stripe_charge_")
-            if (!_stripe_charge_) continue;
-            let { receipt_url } = JSON.parse(_stripe_charge_.value);
-            let { id, date_paid, total, status } = woo_order;
-            let products = {}
-            let findP = async product_id => {
-                console.log("findP",product_id)
-                let product = products[product_id]
-                if (!product){
-                    product = await findProductByPkOr404(product_id)
-                }
-                products[product_id] = product;
-                console.log("FINISHED", product.id)
-                return product;
-            }
-            let per_line_item_orders = woo_order.line_items.map( async line_item => ({
-                id, receipt_url, date_paid, total, line_item, status,
-                product: await findP(line_item.product_id)
-            }))
-            per_line_item_orders = await Promise.all(per_line_item_orders)
-            orders = orders.concat(per_line_item_orders);
+    getOrders: async ({ UserId }) => {
+        const orders = await Order.findAll({
+            where: { UserId },
+            include: [ Invoice ],
+            order: [
+                [ "createdAt", "DESC" ]
+            ]
+        });
+        const lineItemOrders = [];
+        for (const order of orders) {
+            const detailedOrder = await getOrderDetails(order);
+            detailedOrder.CartFloorItems.forEach(cartFloorItem => {
+                lineItemOrders.push({
+                    id: detailedOrder.id,
+                    receipt_url: detailedOrder.Invoice ? detailedOrder.Invoice.receipt_url : null,
+                    date_paid: detailedOrder.Invoice ? detailedOrder.Invoice.createdAt : detailedOrder.createdAt,
+                    total: detailedOrder.Invoice ? detailedOrder.Invoice.price : 0,
+                    status: detailedOrder.status,
+                    line_item: formatLineItem(cartFloorItem),
+                    product: cartFloorItem.Floor
+                });
+            });
         }
-        return orders;
+        return lineItemOrders;
     },
-    getInvoices: async ({ woo_customer_id }) => {
-        let woo_orders = await getCustomerOrders({ woo_customer_id })
-        let invoices = []
-        for (let woo_order of woo_orders) {
-            let _stripe_charge_ = woo_order.meta_data.find(x => x.key === "_stripe_charge_")
-            if (!_stripe_charge_) continue;
-            let { receipt_url } = JSON.parse(_stripe_charge_.value);
-            let products = woo_order.line_items.map(x => `${x.name} - ${x.quantity * 23.4}sqft`);
-            let { id, date_paid, total, status } = woo_order;
-            invoices.push({
-                id, receipt_url, date_paid, total, products, status
-            })
-        }
-        return invoices;
+    getInvoices: async ({ UserId }) => {
+        const orders = await Order.findAll({
+            where: { UserId },
+            include: [ Invoice ],
+            order: [
+                [ "createdAt", "DESC" ]
+            ]
+        });
+        return await Promise.all(orders.map(async order => {
+            const detailedOrder = await getOrderDetails(order);
+            return {
+                id: detailedOrder.id,
+                receipt_url: detailedOrder.Invoice ? detailedOrder.Invoice.receipt_url : null,
+                date_paid: detailedOrder.Invoice ? detailedOrder.Invoice.createdAt : detailedOrder.createdAt,
+                total: detailedOrder.Invoice ? detailedOrder.Invoice.price : 0,
+                products: detailedOrder.products,
+                status: detailedOrder.status
+            };
+        }));
     },
     discardCart: async UserId => {
-        let cart = await getUserActiveCart({ UserId, not_json: true })
-        cart.status = "DISCARDED"
-        console.log({cart},cart.update, cart.save)
+        const cart = await getUserActiveCart({ UserId, not_json: true });
+        cart.status = "DISCARDED";
         await cart.save();
         return cart;
     },
     addBoxesToCart2: async ({
-        UserId, mil_type, boxes_amount,FloorId 
+        UserId, mil_type, boxes_amount, FloorId
     }) => {
-        let cart = await getUserActiveCart({ UserId });
-        let { id: CartId } = cart
-        // let boxes_already_in_cart = await findAllForCartWhere(cart.id,{
-        //     where: {
-        //          FloorId, mil_type
-        //     }
-        // })
-        // let current_boxes_number = 0;
-        // boxes_already_in_cart.map(x => (current_boxes_number += x))
+        const cart = await getUserActiveCart({ UserId });
+        const { id: CartId } = cart;
 
-        let stock_info = await getFloorBoxesInfo({
-            mil_type, FloorId,limit: boxes_amount, cart
-        })
+        const stockInfo = await getFloorBoxesInfo({
+            mil_type, FloorId, limit: boxes_amount, cart
+        });
 
-        let stock_available = stock_info.boxes >= boxes_amount //+ current_boxes_number
-
-        if (!stock_available) throw new ErrorHandler(403, "No stock available", stock_info)
-
-        let cart_floor_item = await findOneCartFloorItem({
-            CartId, mil_type,FloorId 
-        })
-        if (!cart_floor_item) cart_floor_item = await createCartFloorItem({
-            CartId, mil_type, boxes_amount,FloorId
-        })
-        else {
-            cart_floor_item.boxes_amount += boxes_amount
-            await cart_floor_item.save()
+        if (stockInfo.boxes < boxes_amount) {
+            throw new ErrorHandler(403, "No stock available", stockInfo);
         }
-        return cart_floor_item;
+
+        let cartFloorItem = await findOneCartFloorItem({
+            CartId, mil_type, FloorId
+        });
+        if (!cartFloorItem) {
+            cartFloorItem = await createCartFloorItem({
+                CartId, mil_type, boxes_amount, FloorId
+            });
+        } else {
+            cartFloorItem.boxes_amount += boxes_amount;
+            await cartFloorItem.save();
+        }
+        return cartFloorItem;
     },
     addBoxesToCart3: async ({
-        UserId, mil_type, boxes_amount,FloorId, variation_id
+        UserId, mil_type, boxes_amount, FloorId
     }) => {
-        let cart = await getUserActiveCart({ UserId });
-        let { id: CartId } = cart
-        // let boxes_already_in_cart = await findAllForCartWhere(cart.id,{
-        //     where: {
-        //          FloorId, mil_type
-        //     }
-        // })
-        // let current_boxes_number = 0;
-        // boxes_already_in_cart.map(x => (current_boxes_number += x))
-        let floor = await findProductByPkOr404(FloorId);
-        console.log(cart)
-        let cart_line_item = cart.woo_order.line_items.find(
-            x => x.product_id == floor.id
-        ) || { quantity: 0 }
-        let variation = floor.Variations.find(x => x.id === variation_id)
-
-        let new_quantity = cart_line_item.quantity + boxes_amount
-        let stock_available = variation.stock_quantity >= new_quantity //+ current_boxes_number
-
-        if (!stock_available) throw new ErrorHandler(403, "No stock available")
-
-        let { woo_order } = cart;
-        console.log({
-            product_id: floor.id,
-            variation_id,
-            quantity: new_quantity
-        })
-        let new_woo_order = await addLineItemToOrder({ 
-            woo_order,
-            product_id: floor.id,
-            variation_id,
-            quantity: boxes_amount
-        })
-        
-        cart = JSON.parse(JSON.stringify(cart));
-        cart.woo_order = new_woo_order
-
-        return cart;
+        await module.exports.addBoxesToCart2({
+            UserId,
+            mil_type,
+            boxes_amount,
+            FloorId
+        });
+        return await getUserActiveCart({ UserId });
     },
-    getMyCartFloorItemsInfo,
+    getMyCartFloorItemsInfo: async ({ UserId }) => {
+        const { id: CartId } = await getUserActiveCart({ UserId });
+        const cartFloorItems = await findAllForCartCartFloorItems({ CartId });
+        return await Promise.all(cartFloorItems.map(async cartFloorItem => {
+            cartFloorItem = JSON.parse(JSON.stringify(cartFloorItem));
+            const { FloorId, mil_type, boxes_amount } = cartFloorItem;
+            const stockInfo = await getFloorBoxesInfo({
+                mil_type,
+                FloorId,
+                limit: boxes_amount
+            });
+            cartFloorItem.in_stock = stockInfo.boxes >= boxes_amount;
+            if (!cartFloorItem.in_stock) cartFloorItem.stock_info = stockInfo;
+            return cartFloorItem;
+        }));
+    },
     removeBoxesFromCart: async ({
-        UserId, mil_type, boxes_amount,FloorId 
+        UserId, mil_type, boxes_amount, FloorId
     }) => {
-        let cart = await getUserActiveCart({ UserId });
-        let { id: CartId } = cart
-        let info = await removeBoxesFromCartFloorItem({
-            UserId, CartId, mil_type, boxes_amount,FloorId, cart
-        })
-        if (info === false) throw new ErrorHandler(403, "No item of this type to be managed.")
-        return info
+        const cart = await getUserActiveCart({ UserId });
+        const info = await removeBoxesFromCartFloorItem({
+            UserId,
+            CartId: cart.id,
+            mil_type,
+            boxes_amount,
+            FloorId,
+            cart
+        });
+        if (info === false) throw new ErrorHandler(403, "No item of this type to be managed.");
+        return info;
     },
     removeItemFromCart: async ({
         UserId, line_item_id
     }) => {
-        let { woo_order } = await getUserActiveCart({ UserId });
-        await removeLineItemFromOrder({ woo_order, line_item_id })
+        const cart = await getUserActiveCart({ UserId });
+        await deleteCartFloorItem({
+            CartId: cart.id,
+            CartFloorItemId: line_item_id
+        });
         return await getUserActiveCart({ UserId });
     },
-    checkoutMyCart: async ({
-        UserId
-    }) => {
-        let cart = await getUserActiveCart({ UserId });
-        let user = await findUserByPk(UserId);
-        if (user.isGuest){
+    checkoutMyCart: async ({ UserId }) => {
+        const cart = await getUserActiveCart({ UserId, not_json: true });
+        const user = await findUserByPk(UserId);
+
+        if (user.isGuest) {
             throw new ErrorHandler(403, "ValidationError", [
                 "Checkout functionality not allowed for guest users."
-            ])
+            ]);
         }
-        let { woo_order } = cart;
+
+        const cartFloorItems = await getCartFloorItemsWithFloor({ CartId: cart.id });
+        if (!cartFloorItems.length) {
+            throw new ErrorHandler(403, "EmptyCart", [
+                "No items in cart to procceed with checkout."
+            ]);
+        }
+
+        const stockChecks = await getCartItemsStock({ cartFloorItems });
+        const unavailableItem = stockChecks.find(({ cartFloorItem, availableBoxes }) => availableBoxes < cartFloorItem.boxes_amount);
+        if (unavailableItem) {
+            throw new ErrorHandler(403, "Not in stock", [
+                "Some items are not available anymore"
+            ]);
+        }
+
+        const totalPrice = await getTotalPrice({ cartFloorItems });
+
         let charge;
         try {
             charge = await chargeCustomer({
-                order_id: woo_order.id,
+                order_id: cart.id,
                 customer_id: user.customer_id,
-                amount: Number(woo_order.total) * 100
-            })
-        } catch(err){ 
+                amount: totalPrice * 100
+            });
+        } catch (err) {
             if (err.code === "missing") {
-                throw new ErrorHandler(err.statusCode,err.type, [
+                throw new ErrorHandler(err.statusCode, err.type, [
                     "Please add a card."
-                ])            
+                ]);
             }
-            throw new ErrorHandler(err.statusCode,err.type, [
+            throw new ErrorHandler(err.statusCode, err.type, [
                 err.raw.message
-            ])
+            ]);
         }
-        let new_order = await setOrderTransactionId({
-            order_id: woo_order.id, 
-            transaction_id: charge.id,
-            charge
-        })
-        cart = await getUserActiveCart({ UserId, not_json: true });
-        cart.status = "COMPLETED",
-        await cart.save();
-        cart = JSON.parse(JSON.stringify(cart));
-        cart.woo_order = new_order
-        return cart;
-        // let cart_floor_items = await getMyCartFloorItemsInfo({ UserId })
-        // if (!cart_floor_items.length) throw new ErrorHandler(403, "EmptyCart", [
-        //     "No items in cart to procceed with checkout."
-        // ])
-        // let CartId = cart_floor_items[0].CartId
-        // let some_not_available_check = cart_floor_items.find(x => !x.in_stock);
-        // if (some_not_available_check) throw new ErrorHandler(403, "Not in stock", [ "Some items are not available anymore" ])
-        // for (let cart_floor_item of cart_floor_items){
-        //     let {  FloorId, mil_type, boxes_amount } = cart_floor_item;
-        //     await FloorBox.update({ CartFloorItemId: cart_floor_item.id}, {
-        //         where: {
-        //              FloorId, mil_type,
-        //             CartFloorItemId: null
-        //         },
-        //         limit: boxes_amount
-        //     })
-        // }
-        // let invoice = await Invoice.create({
-        //     check_id: uuid.v4(),
-        //     last_four_digits: "4444",
-        //     price: await getTotalPrice({ cart_floor_items }),
-        //     receipt_url: uuid.v4(),
-        //     UserId
-        // })
-        // let order = await Order.create({
-        //     UserId, CartId,
-        //     InvoiceId: invoice.id
-        // })
-        // await Cart.update({ status: "COMPLETED" }, { where: { id: CartId }})
-        // return order;
+
+        const transaction = await models.sequelize.transaction();
+
+        try {
+            const invoice = await Invoice.create({
+                check_id: charge.id || uuid.v4(),
+                last_four_digits: charge.payment_method_details && charge.payment_method_details.card
+                    ? charge.payment_method_details.card.last4
+                    : (charge.source && charge.source.last4) || "0000",
+                price: totalPrice,
+                receipt_url: charge.receipt_url || "",
+                status: "COMPLETED",
+                UserId
+            }, { transaction });
+
+            const order = await Order.create({
+                UserId,
+                CartId: cart.id,
+                InvoiceId: invoice.id
+            }, { transaction });
+
+            for (const cartFloorItem of cartFloorItems) {
+                const floorBoxes = await FloorBox.findAll({
+                    where: {
+                        FloorId: cartFloorItem.FloorId,
+                        mil_type: cartFloorItem.mil_type,
+                        status: "ACTIVE",
+                        CartFloorItemId: null
+                    },
+                    limit: cartFloorItem.boxes_amount,
+                    order: [
+                        [ "id", "ASC" ]
+                    ],
+                    transaction
+                });
+
+                if (floorBoxes.length < cartFloorItem.boxes_amount) {
+                    throw new ErrorHandler(403, "Not in stock", [
+                        "Some items are not available anymore"
+                    ]);
+                }
+
+                await FloorBox.update({
+                    status: "PURCHASED",
+                    CartFloorItemId: cartFloorItem.id
+                }, {
+                    where: {
+                        id: floorBoxes.map(floorBox => floorBox.id)
+                    },
+                    transaction
+                });
+            }
+
+            cart.status = "COMPLETED";
+            await cart.save({ transaction });
+
+            await transaction.commit();
+
+            return await module.exports.findOrder({
+                UserId,
+                OrderId: order.id
+            });
+        } catch (err) {
+            await transaction.rollback();
+            throw err;
+        }
     },
     findOrder: async ({
         UserId, OrderId
     }) => {
-        let order = await Order.findOne({
+        const order = await Order.findOne({
             where: {
-                id: OrderId, UserId
-            }
-        })
-        order = JSON.parse(JSON.stringify(order));
-        order.Cart = await findOneCart({ id: order.CartId })
-        return JSON.parse(JSON.stringify(order));
+                id: OrderId,
+                UserId
+            },
+            include: [ Invoice ]
+        });
+        if (!order) throw new ErrorHandler(404, "Order not found", [ "Order not found" ]);
+        return await getOrderDetails(order);
     },
     cancelOrder: async ({
         UserId, OrderId
     }) => {
-        let order = await Order.findOne({
+        const order = await Order.findOne({
             where: {
-                id: OrderId, UserId
-            }
-        })
-        if (!order) throw new ErrorHandler(404,"Order not found",[
+                id: OrderId,
+                UserId
+            },
+            include: [ Invoice ]
+        });
+        if (!order) throw new ErrorHandler(404, "Order not found", [
             "Order not found"
-        ])
+        ]);
         order.status = "CANCELED";
         await order.save();
-        return order;
+        return await getOrderDetails(order);
     }
 }

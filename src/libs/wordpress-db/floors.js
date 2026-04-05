@@ -4,7 +4,7 @@ const wp_db = require("./index");
 let sf_insertThumbnailIntoFloor = floor => {
     let default_image = floor.images && floor.images[0]
     floor.thumbnail_url = default_image && default_image.guid || null
-    if (!floor.thumbnail_url) floor.thumbnail_url = "https://solyd-floors.vercel.app/woocommerce-placeholder-300x300.png"
+    if (!floor.thumbnail_url) floor.thumbnail_url = "https://solyd-floors.vercel.app/product-placeholder-300x300.png"
 }
 
 const findAttachments = async post_id => {

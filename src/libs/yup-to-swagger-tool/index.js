@@ -54,7 +54,6 @@ Interpreter.prototype.parse_array_field = object_field => {
 
 Interpreter.prototype.parse_field = (field,field_name) => {
     let { type } = field;
-    console.log("DEBUG: parse_field - ",type)
     let schema; 
     if (type === "string") schema = Interpreter.prototype.parse_string_field(field);
     if (type === "boolean") schema = { type: "boolean" }
@@ -65,7 +64,6 @@ Interpreter.prototype.parse_field = (field,field_name) => {
         if (field.spec && field.spec.meta) {
             if (field.spec.meta.example){
                 try {
-                    console.log("Validating",field_name,field.spec.meta.example,field)
                     field.validateSync(field.spec.meta.example, { strict: true })
                 } catch(err){
                     throw new Error(`Example for field: ${field_name || "<anonymous_field>"} is invalid: \n${JSON.stringify(err.errors).replace("this",field_name || "<anonymous_field>")}`)
@@ -130,7 +128,6 @@ Interpreter.prototype.parse_query_or_params_or_headers = (in_,schema) => {
             description: field_schema.spec && field_schema.spec.meta && field_schema.spec.meta.description
         })
     }
-    console.log({parameters})
     return parameters;
 }
 
@@ -140,7 +137,6 @@ Interpreter.prototype.parse_headers = headers => Interpreter.prototype.parse_que
 
 Interpreter.prototype.parse_schema = yup_schema => {
     let swagger_path
-    console.log(yup_schema._meta,999)
     let meta;
     try {
         let { spec: { meta: _meta_ } } = yup_schema
@@ -152,7 +148,6 @@ Interpreter.prototype.parse_schema = yup_schema => {
     else throw new Error("meta is required") 
     
     if (yup_schema.type !== "object"){
-        console.log(yup_schema,13)
         throw new Error("Schema must be a object")
     }
 

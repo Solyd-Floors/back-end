@@ -28,7 +28,7 @@ app.post("/reviews",[
         requestBody: yup.object().shape({
             description: yup.string().required(),
             value: yup.number().integer().positive().min(0).max(10).required(),
-            woo_product_id: yup.number().integer().positive().required()
+            FloorId: yup.number().integer().positive().required()
         })
     }))
 ], async (req,res) => {
@@ -46,7 +46,7 @@ app.patch("/reviews/:review_id", [
         requestBody: yup.object().shape({
             description: yup.string(),
             value: yup.number().integer().positive().min(0).max(10),
-            woo_product_id: yup.number().integer().positive()
+            FloorId: yup.number().integer().positive()
         }),
         params: yup.object().shape({
             review_id: param_id.required()

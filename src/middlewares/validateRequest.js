@@ -10,7 +10,6 @@ const getAcceptableBodyOutput = body => {
 module.exports = (yupSchema,strict = true,options) => {
     if (options && options.auto_docs_enabled){
         jts_interpreter.parse_schema(yupSchema)
-        console.log(jts_interpreter.paths)
     }
     return async (req,res,next) => {
         if (options){

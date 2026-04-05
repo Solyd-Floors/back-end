@@ -37,10 +37,8 @@ const { createCart } = require("../carts-dal");
 const yup = require("yup");
 const { id, param_id, email, password } = require("../utils/validations");
 const { createMeReview } = require("../reviews-dal");
-const { updateFloorAverageRating } = require("../floors-dal");
 const { updateCard } = require("../stripe");
 const { findByPk: findUserByPk, updateUser } = require("../users-api/users-dal");
-const { getCustomerOders } = require("../woocommerce");
 
 const multer = require("multer")
 const upload = multer();
@@ -159,9 +157,7 @@ app.get("/me/invoices", [
     jwtRequired, multipleAuth([ passBusinessFromJWT, passUserOrGuestFromJWT ])
 ], async (req,res) => {
     let user = req.business ? req.business.User : req.user
-    console.log(user,user.customer_id)
-    let { customer_id, woo_customer_id } = user;
-    let invoices = await getInvoices({ woo_customer_id })
+    let invoices = await getInvoices({ UserId: user.id })
     return res.json({
         code: 200,
         message: "success",
@@ -203,7 +199,7 @@ app.post("/me/cart/add/floor_boxes", [
             mil_type: mil_type_schema,
             FloorId: id.required(),
             boxes_amount: id.required(),
-            variation_id: id.required(),
+            variation_id: id,
         })
     }))
 ], async (req,res) => {
@@ -274,9 +270,8 @@ app.get("/me/orders", [
     jwtRequired, multipleAuth([passBusinessFromJWT, passUserOrGuestFromJWT]),
 ], async (req,res) => {
     let user = req.business ? req.business.User : req.user
-    let { customer_id, woo_customer_id } = user;
     let orders = await getOrders({
-        woo_customer_id
+        UserId: user.id
     })
     return res.json({
         code: 200,
@@ -327,9 +322,8 @@ app.post("/me/review/floor/:floor_id", [
 ], async (req,res) => {
     let { id: UserId } = req.user;
     let { floor_id: FloorId } = req.params;
-    console.log(req.params)
     let review = await createMeReview({
-        UserId, woo_product_id: FloorId, ...req.body
+        UserId, FloorId, ...req.body
     })
     return res.json({
         code: 200,

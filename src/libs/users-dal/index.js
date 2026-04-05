@@ -2,10 +2,9 @@
 const { User, Installer } = require("../../models")
 const uuid = require("uuid");
 const { createCustomer } = require("../stripe");
-const { createWooCustomer } = require("../woocommerce");
 const { ErrorHandler } = require("../../utils/error");
 
-const linkWooCommerceAndStripe = async ({ user }) => {
+const linkStripeCustomer = async ({ user }) => {
     try {
         let { id: customer_id } = await createCustomer({ user_id: user.id });
         user.customer_id = customer_id;
@@ -13,16 +12,6 @@ const linkWooCommerceAndStripe = async ({ user }) => {
         console.log(err)
         await user.destroy();
         throw new Error(500, "StripeError", [ "We could not create a stripe customer to attach to user." ])    
-    }
-    try {
-        let { id: woo_customer_id } = await createWooCustomer({ user });
-        user.woo_customer_id = woo_customer_id
-    } catch(err){
-        console.log(err)
-        await user.destroy()
-        throw new ErrorHandler(500,"WooCommerceError", [ 
-            "We could not create a link to WooCommerce"
-        ])
     }
     await user.save();
     return user;
@@ -40,7 +29,8 @@ module.exports = {
             last_name: `guest-${id}`,
             isGuest: true
         })
-        user = await linkWooCommerceAndStripe({ user })
+        user = await linkStripeCustomer({ user })
         return user;
-    },linkWooCommerceAndStripe
+    },
+    linkStripeCustomer
 }

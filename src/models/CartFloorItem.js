@@ -1,9 +1,5 @@
 "use strict"
 
-const { ErrorHandler } = require("../utils/error");
-const { Floor } = require("../models");
-const getPrice = require("../utils/getPrice");
-
 module.exports = (sequelize, DataTypes) => {
     let options = {
         defaultScope: { 

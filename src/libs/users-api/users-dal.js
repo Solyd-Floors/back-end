@@ -6,8 +6,7 @@ const SALT_ROUNDS = 10;
 
 const bcrypt = require("bcrypt");
 const { ErrorHandler } = require("../../utils/error");
-const { createCustomer } = require("../stripe");
-const { linkWooCommerceAndStripe } = require("../users-dal");
+const { linkStripeCustomer } = require("../users-dal");
 const uploadFile = require("../aws/uploadFile");
 
 //  TODO: On Stripe fail, handle it
@@ -29,7 +28,7 @@ module.exports = {
         if (picture_image) args.picture_url = await uploadFile(picture_image)
 
         let user = await User.create(args)
-        user = await linkWooCommerceAndStripe({ user })
+        user = await linkStripeCustomer({ user })
         return user;
     },
     createUserUnrestricted: async ({
@@ -41,7 +40,7 @@ module.exports = {
         if (picture_image) args.picture_url = await uploadFile(picture_image)
 
         let user = await User.create(args)
-        user = await linkWooCommerceAndStripe({ user })
+        user = await linkStripeCustomer({ user })
         return user; 
     },
     updateUser: async ({pk,data}) => {

@@ -16,7 +16,8 @@ module.exports = (sequelize, DataTypes) => {
         },
         woo_order_id: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: false,
+            defaultValue: 0
         }
     });
 

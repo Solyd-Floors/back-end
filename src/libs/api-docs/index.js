@@ -11,10 +11,7 @@ swaggerDocument.paths = jts_interpreter.paths
 swaggerDocument.tags = jts_interpreter.tags
 swaggerDocument.securitySchemes = jts_interpreter.securitySchemes
 
-console.log(swaggerDocument,55)
 const swaggerDocumentYAML = YAML.stringify(swaggerDocument)
-
-console.log({swaggerDocument})
 
 app.get("/docs/json", (req,res) => res.json(swaggerDocument))
 app.get("/docs/yaml", (req,res) => res.send(swaggerDocumentYAML))
@@ -32,4 +29,3 @@ app.get("/docs/mock", (req,res) => {
 })
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-

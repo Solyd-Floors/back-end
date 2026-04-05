@@ -1,20 +1,19 @@
 
 const { FloorReviewCache, User, Review } = require("../../models");
-const { updateFloorAverageRating } = require("../floors-dal");
 
 module.exports = {
-    createMeReview: async ({ UserId, woo_product_id, value, description }) => {
-        let review = await Review.create({ UserId, woo_product_id, value, description })
+    createMeReview: async ({ UserId, FloorId, value, description }) => {
+        let review = await Review.create({ UserId, woo_product_id: FloorId, value, description })
         review = JSON.parse(JSON.stringify(review));
         review.User = User.findByPk(review.UserId);
 
-        let reviews = await Review.findAll({ where: { woo_product_id }});
-        let floor_review_cache = await FloorReviewCache.findOne({ where: { woo_product_id }});
+        let reviews = await Review.findAll({ where: { woo_product_id: FloorId }});
+        let floor_review_cache = await FloorReviewCache.findOne({ where: { woo_product_id: FloorId }});
         if (!floor_review_cache) {
             floor_review_cache = await FloorReviewCache.create({
                 total_reviews_num: 0,
                 average_rating: 0,
-                woo_product_id
+                woo_product_id: FloorId
             })
         }
         const ratings = reviews.map(review => review.value)

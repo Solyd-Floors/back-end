@@ -16,7 +16,6 @@ jts_interpreter.tags = []
 jts_interpreter._parse_schema = jts_interpreter.parse_schema
 
 jts_interpreter.parse_schema = yupSchema => {
-    console.log(yupSchema,99)
     let path_schema = jts_interpreter._parse_schema(yupSchema);
     // console.log(path_schema,22,Object.keys(path_schema)[0])
     let key = Object.keys(path_schema)[0]

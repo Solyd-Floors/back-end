@@ -1,6 +1,5 @@
 "use strict"
 
-const { updateFloorAverageRating } = require("../libs/floors-dal");
 const { ErrorHandler } = require("../utils/error");
 
 module.exports = (sequelize, DataTypes) => {

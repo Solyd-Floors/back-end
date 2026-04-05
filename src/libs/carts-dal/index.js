@@ -1,10 +1,6 @@
 
-const { Cart } = require("../../models");
-const { CartFloorBox, FloorBox, CartFloorItem, Floor } = require("../../models");
-const { User } = require("../../models");
+const { Cart, CartFloorItem, Floor } = require("../../models");
 const { ErrorHandler } = require("../../utils/error");
-const getPrice = require("../../utils/getPrice");
-const { createPendingOrder } = require("../woocommerce");
 const { getCartFloorItemWithMoreInfo } = require("./utils");
 
 module.exports = {
@@ -16,15 +12,14 @@ module.exports = {
         if (status) where.status = status
         
         let cart = await Cart.findOne({
-            where, 
-            // include: [ 
-            //     {
-            //         model: CartFloorItem,
-            //         include: [ Floor ]
-            //     }
-            //  ]
+            where,
+            include: [
+                {
+                    model: CartFloorItem,
+                    include: [ Floor ]
+                }
+            ]
         })
-        return cart; // woo
         if (not_json) return cart
         cart = JSON.parse(JSON.stringify(cart)) 
         if (cart && cart.CartFloorItems) {
@@ -32,8 +27,6 @@ module.exports = {
                 cart.CartFloorItems[i] = await getCartFloorItemWithMoreInfo(cart.CartFloorItems[i])
             }
         }
-        // await Promise.all(cart.CartFloorItems)
-        // console.log(cart.CartFloorItems,"cart.CartFloorItems")
         return cart;
     },
     createCart: async ({ 
@@ -45,38 +38,12 @@ module.exports = {
         if (
             await Cart.findOne({ where })
         ) throw new ErrorHandler(403, "Discard active cart to create a new one.")
-        let user = await User.findByPk(UserId);
-        let woo_order = await createPendingOrder({ user });
         let cart = await Cart.create({ 
             UserId, EmployeeId,
-            woo_order_id: woo_order.id
+            woo_order_id: 0
         })
-        cart = JSON.parse(JSON.stringify(cart));
-        cart.woo_order = woo_order;
-        return cart;
+        return await module.exports.findOne({ id: cart.id });
 
     },
-    getCartWithAllItems: async ({
-        CartId
-    }) => {
-        let cart = await Cart.findByPkOr404(CartId);
-        let cart_floor_boxes = await CartFloorBox.findAll({
-            where: { CartId }, include: FloorBox
-        })
-
-        let items = {}
-        for (let cart_floor_box of cart_floor_boxes){
-            let floor_box = cart_floor_box.FloorBox;
-            let { FloorId, mil_type } = floor_box
-            if (!items[FloorId]) items[FloorId] = {}
-            if (!items[FloorId][mil_type]){
-                items[FloorId][mil_type] = 1
-            } else {
-                items[FloorId][mil_type]++;
-            }
-        }
-
-        console.log(items)
-        return cart;
-    }
+    getCartWithAllItems: async ({ CartId }) => await module.exports.findOne({ id: CartId })
 }
