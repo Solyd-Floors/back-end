@@ -185,7 +185,7 @@ app.post("/floors", [
             name: yup.string().required(),
             description: yup.string().required(),
             FloorCategoryId: positive_integer_as_string.required(),
-            FloorTypeSlug: yup.string().required(),
+            FloorTypeSlug: yup.string(),
             ColorId: positive_integer_as_string.required(),
             plank_dimension_width: yup.number().positive().required(),
             plank_dimension_height: yup.number().positive().required(),
