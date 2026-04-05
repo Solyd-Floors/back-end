@@ -23,7 +23,8 @@ const buildInclude = ({ FloorTypeSlug, Color: ColorName } = {}) => {
             } : undefined
         },
         {
-            model: User
+            model: User.unscoped(),
+            attributes: { exclude: [ "password", "forget_password_token" ] }
         }
     ];
     return include;
