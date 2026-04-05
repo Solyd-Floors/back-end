@@ -15,7 +15,7 @@ let sequelize;
 sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
     host: process.env.DB_HOST,
     dialect: process.env.DB_DIALECT /* one of 'mysql' | 'mariadb' | 'postgres' | 'mssql' */,
-    logging: true,
+    logging: console.log,
     dialectOptions: {
         ssl: {
             require: true,
