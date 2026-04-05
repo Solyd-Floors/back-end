@@ -103,14 +103,8 @@ app.use(V1_PATHNAME_PREFIX, general_api);
 // app.use(V1_PATHNAME_PREFIX, wordpress_api);
 
 
-app.get("/test", async (req,res) => {
-    let { data } = await WooCommerce.get("products")
-    return res.json({ data })
-})
-
 const V2_PATHNAME_PREFIX = "/api/v2";
 const get_model_pagination = require("./libs/v2-get-model-pagination");
-const WooCommerce = require('./libs/woocommerce');
 app.use(V2_PATHNAME_PREFIX, get_model_pagination)
 
 

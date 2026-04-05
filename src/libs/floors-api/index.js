@@ -23,7 +23,6 @@ const uploadMiddleware = upload.fields([
 
 const yup = require("yup");
 const { param_id, positive_integer_as_string } = require("../utils/validations");
-const { getTotalFloorPages } = require("../woocommerce");
 
 app.use(allowCrossDomain)
 

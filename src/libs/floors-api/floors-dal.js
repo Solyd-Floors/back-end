@@ -2,10 +2,16 @@
 const { Floor,FloorReviewCache, FloorType, FloorCategory, User, Color, Review } = require("../../models");
 const { Op } = require("sequelize");
 const { getFloorBoxesInfo, findCheapestFloorBoxFor } = require("../floor-boxes-dal");
-const { 
-    findCheapestFloorBoxPriceFor: wooFindCheapestFloorBoxPriceFor,
-    getFloorBoxesInfo: wooGetFloorBoxesInfo
-} = require("../woocommerce");
+
+const findCheapestFloorBoxPriceFor = ({ floor }) => {
+    let price;
+    for (let variation of floor.Variations || []) {
+        let variationPrice = Number(variation.price);
+        if (Number.isNaN(variationPrice)) continue;
+        if (variationPrice < price || price === undefined) price = variationPrice;
+    }
+    return price || null;
+}
 
 module.exports = {
     findReviewsForFloor: async FloorId => {
@@ -32,12 +38,12 @@ module.exports = {
         console.log("stock_info_args",stock_info_args)
         if (Object.keys(stock_info_args).length == 2) {
             console.log(stock_info_args)
-            floor.stock_info = await wooGetFloorBoxesInfo({ 
+            floor.stock_info = await getFloorBoxesInfo({ 
                 FloorId: floor_id, UserId,
                 ...stock_info_args
             }) 
         }
-        let cheapest_floor_box_price = await wooFindCheapestFloorBoxPriceFor({ floor })
+        let cheapest_floor_box_price = await findCheapestFloorBoxPriceFor({ floor })
         floor.price_per_square_foot = cheapest_floor_box_price
         let floor_review_cache = await FloorReviewCache.findOne({ where: { woo_product_id: floor.id }});
         floor.cached_avg_rating = floor_review_cache ? floor_review_cache.average_rating : 0;
@@ -64,7 +70,7 @@ module.exports = {
         let floors = await Floor.wooFindAll(where)
         floors = JSON.parse(JSON.stringify(floors));
         for (let floor of floors){
-            let cheapest_floor_box_price = await wooFindCheapestFloorBoxPriceFor({ floor })
+            let cheapest_floor_box_price = await findCheapestFloorBoxPriceFor({ floor })
             floor.price_per_square_foot = cheapest_floor_box_price
             let floor_review_cache = await FloorReviewCache.findOne({ where: { woo_product_id: floor.id }});
             floor.cached_avg_rating = floor_review_cache ? floor_review_cache.average_rating : 0;

@@ -1,7 +1,5 @@
 "use strict"
 
-const { ErrorHandler } = require("../utils/error");
-const { getFloors, findProductByPkOr404 } = require("../libs/woocommerce");
 const wp_floors = require("../libs/wordpress-db/floors")
 
 module.exports = (sequelize, DataTypes) => {
@@ -51,12 +49,10 @@ module.exports = (sequelize, DataTypes) => {
 
     Floor.wooFindAll = async options => {
         return await wp_floors.findAll(options)
-        // return await getFloors(options); //deprecated
     }
 
     Floor.wooFindByPkOr404 = async floor_id => {
-        console.log(555)
-        return await findProductByPkOr404(floor_id)
+        return await wp_floors.findByPkOr404(floor_id)
     }
     
     Floor.associate = models => {

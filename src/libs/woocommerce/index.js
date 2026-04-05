@@ -1,15 +1,20 @@
-const WooCommerceRestApi = require("@woocommerce/woocommerce-rest-api").default;
+let wooCommerce;
 
-const WooCommerce = new WooCommerceRestApi({
-  url: process.env.WOO_COMMERCE_URL || 'http://localhost:8080/solyd_floors_ecommerce',
-  consumerKey: process.env.WOO_CONSTUMER_KEY || 'ck_be7de3a8b20a93f1c7f771e8a35136632622beb8',
-  consumerSecret: process.env.WOO_CONSTUMER_SECRET || 'cs_3f44f5edd71153f1d5d91aaec91a6e4e330d65a0',
-  version: 'wc/v3'
-});
+const getWooCommerce = () => {
+  if (wooCommerce) return wooCommerce;
+  const WooCommerceRestApi = require("@woocommerce/woocommerce-rest-api").default;
+  wooCommerce = new WooCommerceRestApi({
+    url: process.env.WOO_COMMERCE_URL || 'http://localhost:8080/solyd_floors_ecommerce',
+    consumerKey: process.env.WOO_CONSTUMER_KEY || 'ck_be7de3a8b20a93f1c7f771e8a35136632622beb8',
+    consumerSecret: process.env.WOO_CONSTUMER_SECRET || 'cs_3f44f5edd71153f1d5d91aaec91a6e4e330d65a0',
+    version: 'wc/v3'
+  });
+  return wooCommerce;
+};
 
 let insertVariationsIntoFloor = async floor => {
   let endpoint = `products/${floor.id}/variations`
-  let { data: Variations } = await WooCommerce.get(endpoint)
+  let { data: Variations } = await getWooCommerce().get(endpoint)
   floor.Variations = Variations;
 }
 
@@ -26,7 +31,7 @@ let insertPlankDimensionsIntoFloor = floor => {
 
 let findProductByPkOr404 = async floor_id => {
   let endpoint = `products/${floor_id}`
-  let { data: floor } = await WooCommerce.get(endpoint);
+  let { data: floor } = await getWooCommerce().get(endpoint);
   await insertVariationsIntoFloor(floor)
   await insertThumbnailIntoFloor(floor)
   insertPlankDimensionsIntoFloor(floor)
@@ -36,17 +41,17 @@ let findProductByPkOr404 = async floor_id => {
 module.exports = {
   getCustomerOrders: async ({ woo_customer_id }) => {
     console.log({woo_customer_id})
-    let response = await WooCommerce.get("orders",{ 
+    let response = await getWooCommerce().get("orders",{ 
       customer: woo_customer_id,
       status: "processing,on-hold,completed,cancelled,refunded,failed,trash"
     })
     let { data: orders } = response;
     return orders;
   },
-  "default": WooCommerce,
-  WooCommerce,
+  "default": getWooCommerce,
+  WooCommerce: getWooCommerce,
   getTotalFloorPages: async () => {
-    let response = await WooCommerce.get("reports/products/totals");
+    let response = await getWooCommerce().get("reports/products/totals");
     let { data: product_totals } = response;
     console.log(product_totals,response)
     let total = product_totals.find(x => x.name == "Variable product").total
@@ -56,7 +61,7 @@ module.exports = {
   },
   getFloors: async options => {
     console.log("WOOO",options)
-    let response = await WooCommerce.get("products", { per_page: 10, page: 1, ...options })
+    let response = await getWooCommerce().get("products", { per_page: 10, page: 1, ...options })
     let { data: floors } = response;
     for (let floor of floors){
       await insertVariationsIntoFloor(floor)
@@ -117,7 +122,7 @@ module.exports = {
         { user_id: user.id }
       ]
     };
-    let { data: woo_customer } = await WooCommerce.post("customers", data)
+    let { data: woo_customer } = await getWooCommerce().post("customers", data)
     console.log(woo_customer)
     return woo_customer;
   },
@@ -128,12 +133,12 @@ module.exports = {
       customer_id: user.woo_customer_id,
       line_items: [ ],
     };
-    let res = await WooCommerce.post("orders", data)
+    let res = await getWooCommerce().post("orders", data)
     console.log(res);
     return res.data;
   },
   findOrderById: async id => {
-    let res = await WooCommerce.get("orders/" + id)
+    let res = await getWooCommerce().get("orders/" + id)
     console.log(res.data)
     return res.data;
   },
@@ -141,7 +146,7 @@ module.exports = {
     let line_items = woo_order.line_items
     line_item = { product_id, variation_id, quantity }
     line_items.push(line_item);
-    let { data: order } = await WooCommerce.put("orders/" + woo_order.id, { line_items })
+    let { data: order } = await getWooCommerce().put("orders/" + woo_order.id, { line_items })
     return order;
   },
   removeLineItemFromOrder: async ({ woo_order, line_item_id }) => {
@@ -151,7 +156,7 @@ module.exports = {
       x => x.id !== line_item_id
     );
     line_items.push(line_item);
-    let { data: order } = await WooCommerce.put("orders/" + woo_order.id, { line_items })
+    let { data: order } = await getWooCommerce().put("orders/" + woo_order.id, { line_items })
     return order;
   },
   setOrderTransactionId: async ({ order_id, transaction_id, charge }) => {
@@ -166,7 +171,7 @@ module.exports = {
         }
       ]
     }
-    let { data: order } = await WooCommerce.put("orders/" + order_id, data)
+    let { data: order } = await getWooCommerce().put("orders/" + order_id, data)
     return order;
   }
 }

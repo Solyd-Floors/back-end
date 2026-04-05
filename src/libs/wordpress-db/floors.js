@@ -1,11 +1,10 @@
-
-const { findCheapestFloorBoxPriceFor } = require("../woocommerce");
+const { ErrorHandler } = require("../../utils/error");
 const wp_db = require("./index");
 
 let sf_insertThumbnailIntoFloor = floor => {
     let default_image = floor.images && floor.images[0]
     floor.thumbnail_url = default_image && default_image.guid || null
-    if (!floor.thumbnail_url) floor.thumbnail_url = "https://sf-front.herokuapp.com/woocommerce-placeholder-300x300.png"
+    if (!floor.thumbnail_url) floor.thumbnail_url = "https://solyd-floors.vercel.app/woocommerce-placeholder-300x300.png"
 }
 
 const findAttachments = async post_id => {
@@ -133,6 +132,16 @@ let insertPlankDimensionsIntoFloor = floor => {
     floor.plank_dimensions = plank_dimensions
   }
 
+const findCheapestFloorBoxPriceFor = ({ floor }) => {
+    let price;
+    for (let variation of floor.Variations || []) {
+        let variationPrice = Number(variation.price);
+        if (Number.isNaN(variationPrice)) continue;
+        if (variationPrice < price || price === undefined) price = variationPrice;
+    }
+    return price || null;
+}
+
 const _wp_to_sf = wp_floor => {
     wp_floor.name = wp_floor.post_title
     // insertPlankDimensionsIntoFloor(wp_floor)
@@ -147,7 +156,7 @@ const wp_to_sf = data => {
 }
 
 module.exports = {
-    findAll: async (options) => {
+    findAll: async (options = {}) => {
         console.log({options})
         let querySearch = options.query ? ` and post_title LIKE '%${options.query}%'` : ''
         if (options.id){
@@ -191,5 +200,12 @@ module.exports = {
         rows = await filterFloors(options,rows)
         return wp_to_sf(rows);
 
-    }
+    },
+    findByPkOr404: async floor_id => {
+        const floors = await module.exports.findAll({ id: floor_id });
+        const floor = floors[0];
+        if (floor) return floor;
+        throw new ErrorHandler(404, `Floor with id=${floor_id} not found!`);
+    },
+    findCheapestFloorBoxPriceFor
 }
