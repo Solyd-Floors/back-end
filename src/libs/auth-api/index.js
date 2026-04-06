@@ -119,8 +119,8 @@ app.get('/employee/auth', [
         })
     ,true, { auto_docs_enabled: true })
 ], async (req, res) => {
-    if (!employee) throw new ErrorHandler(401,"Unauthorized")
-    return res.json(getEmployeeResponse(employee))
+    if (!req.employee) throw new ErrorHandler(401,"Unauthorized")
+    return res.json(getEmployeeResponse(req.employee))
 });
 
 app.post("/employee/auth", [

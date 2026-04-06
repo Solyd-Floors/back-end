@@ -11,7 +11,7 @@ const {
     passUserOrCreateGuestFromJWT, passBusinessFromJWT
 } = require("../../middlewares");
 
-const { findAll, createFloor, updateFloor, deleteFloor, findOne, findReviewsForFloor } = require("./floors-dal");
+const { PAGE_SIZE, countAll, findAll, createFloor, updateFloor, deleteFloor, findOne, findReviewsForFloor } = require("./floors-dal");
 const { ErrorHandler } = require("../../utils/error");
 
 const multer = require('multer');
@@ -40,11 +40,27 @@ const populateFloorTypeSlugFromName = (req, res, next) => {
 app.use(allowCrossDomain)
 
 app.get("/floors/total_pages", [
-
+    query_param_string_to_integer("min_price"),
+    query_param_string_to_integer("max_price"),
+    validateRequest(yup.object().shape({
+        query: yup.object().shape({
+            FloorCategoryId: param_id,
+            ColorId: param_id,
+            FloorTypeId: param_id,
+            FloorTypeSlug: yup.string(),
+            Color: yup.string(),
+            query: yup.string(),
+            min_price: yup.number(),
+            max_price: yup.number().when("min_price", {
+                is: val => val !== undefined,
+                then: yup.number().required(),
+                otherwise: yup.number()
+            })
+        })
+    }))
 ], async (req,res) => {
-    const floors = await findAll(req.query);
-    const divided = floors.length / 10
-    let total_pages = divided < 0 ? 1: Math.floor(divided + 1)
+    const totalFloors = await countAll(req.query);
+    const total_pages = Math.ceil(totalFloors / PAGE_SIZE);
     return res.json({
         code: 200,
         message: "success",

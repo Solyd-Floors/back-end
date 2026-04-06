@@ -15,6 +15,7 @@ const { findOne: findOneCart } = require("../carts-dal");
 const { findByPk: findUserByPk } = require("../users-api/users-dal");
 const { chargeCustomer } = require("../stripe");
 const uuid = require("uuid");
+const { attachFloorCompatibility, buildWooLineItem, toCurrencyNumber } = require("../frontend-compat");
 
 const getCartFloorItemsWithFloor = async ({ CartId }) => await CartFloorItem.findAll({
     where: { CartId },
@@ -37,6 +38,22 @@ const getOrderDetails = async order => {
     parsedOrder.Cart = await findOneCart({ id: order.CartId });
     parsedOrder.CartFloorItems = JSON.parse(JSON.stringify(await getCartFloorItemsWithFloor({
         CartId: order.CartId
+    })));
+    parsedOrder.CartFloorItems = await Promise.all(parsedOrder.CartFloorItems.map(async cartFloorItem => ({
+        ...cartFloorItem,
+        price_per_square_foot: toCurrencyNumber((await FloorBox.unscoped().findOne({
+            where: { CartFloorItemId: cartFloorItem.id },
+            order: [
+                [ "price_per_square_foot", "ASC" ],
+                [ "id", "ASC" ]
+            ]
+        }))?.price_per_square_foot || 0),
+        total_price: toCurrencyNumber((await FloorBox.unscoped().findAll({
+            where: { CartFloorItemId: cartFloorItem.id }
+        })).reduce((sum, floorBox) => (
+            sum + (Number(floorBox.price_per_square_foot) * 23.4)
+        ), 0)),
+        Floor: attachFloorCompatibility({ floor: cartFloorItem.Floor })
     })));
     parsedOrder.quantity = 0;
     parsedOrder.products = [];
@@ -99,13 +116,18 @@ module.exports = {
         for (const order of orders) {
             const detailedOrder = await getOrderDetails(order);
             detailedOrder.CartFloorItems.forEach(cartFloorItem => {
+                const line_item = buildWooLineItem({
+                    cartFloorItem,
+                    product: cartFloorItem.Floor
+                });
+
                 lineItemOrders.push({
                     id: detailedOrder.id,
                     receipt_url: detailedOrder.Invoice ? detailedOrder.Invoice.receipt_url : null,
                     date_paid: detailedOrder.Invoice ? detailedOrder.Invoice.createdAt : detailedOrder.createdAt,
                     total: detailedOrder.Invoice ? detailedOrder.Invoice.price : 0,
                     status: detailedOrder.status,
-                    line_item: formatLineItem(cartFloorItem),
+                    line_item,
                     product: cartFloorItem.Floor
                 });
             });

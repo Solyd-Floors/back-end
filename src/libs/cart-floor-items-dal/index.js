@@ -1,5 +1,6 @@
 
 const { CartFloorItem } = require("../../models");
+const { ErrorHandler } = require("../../utils/error");
 
 module.exports = {
     findOne: async data => {
@@ -31,6 +32,9 @@ module.exports = {
         CartId, CartFloorItemId
     }) => {
         let cart_floor_item = await CartFloorItem.findOne({ where: { CartId, id: CartFloorItemId } });
+        if (!cart_floor_item) {
+            throw new ErrorHandler(404, "Cart item not found", [ "Cart item not found." ]);
+        }
         await cart_floor_item.destroy();
         return cart_floor_item;
     },

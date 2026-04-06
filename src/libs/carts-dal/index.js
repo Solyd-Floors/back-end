@@ -2,6 +2,7 @@
 const { Cart, CartFloorItem, Floor } = require("../../models");
 const { ErrorHandler } = require("../../utils/error");
 const { getCartFloorItemWithMoreInfo } = require("./utils");
+const { attachCartCompatibility, attachFloorCompatibility } = require("../frontend-compat");
 
 module.exports = {
     findOne: async ({ id, UserId, EmployeeId, status, not_json }) => {
@@ -27,7 +28,10 @@ module.exports = {
                 cart.CartFloorItems[i] = await getCartFloorItemWithMoreInfo(cart.CartFloorItems[i])
             }
         }
-        return cart;
+        return await attachCartCompatibility({
+            cart,
+            decorateProduct: floor => attachFloorCompatibility({ floor })
+        });
     },
     createCart: async ({ 
         UserId, EmployeeId
